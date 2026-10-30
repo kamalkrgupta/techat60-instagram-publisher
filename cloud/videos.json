@@ -1,0 +1,181 @@
+{
+  "repository": "kamalkrgupta/techat60-instagram-publisher",
+  "videos": [
+    {
+      "number": 1,
+      "filename": "001 - HTML Explained in 60 Seconds HTML for Beginners - Vi_gc4jOFAw.mp4",
+      "topic": "HTML Explained in 60 Seconds",
+      "sha256": "b269e0d33a65eedf82bbbab1934e96901e43380bcd21642f2e1d0acda2930bd0",
+      "bytes": 4385244,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/001-b269e0d33a65eedf82bbbab1934e96901e43380bcd21642f2e1d0acda2930bd0.mp4"
+    },
+    {
+      "number": 2,
+      "filename": "002 - What Are HTML Tags Web Development in 60 Seconds - GjtwEy6C0BY.mp4",
+      "topic": "What Are HTML Tags",
+      "sha256": "90a2885ab89ead2e910b60eb288c5c5224ef27015c511dff42eabc291ab4bbb5",
+      "bytes": 4548806,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/002-90a2885ab89ead2e910b60eb288c5c5224ef27015c511dff42eabc291ab4bbb5.mp4"
+    },
+    {
+      "number": 3,
+      "filename": "003 - HTML Headings Explained Web Development in 60 Seconds - iJj3UEqr3mM.mp4",
+      "topic": "HTML Headings Explained",
+      "sha256": "29842b25ff58f270315f7d14f338f3e05272b8fa656648c32034f8c47c237fba",
+      "bytes": 4656005,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/003-29842b25ff58f270315f7d14f338f3e05272b8fa656648c32034f8c47c237fba.mp4"
+    },
+    {
+      "number": 4,
+      "filename": "004 - HTML Paragraphs Web Development in 60 Seconds - XpPqAg6oUPQ.mp4",
+      "topic": "HTML Paragraphs",
+      "sha256": "988cc56e6a2dedae882c497621ffe4a44c9e432495acf92737671d23954b7545",
+      "bytes": 4661237,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/004-988cc56e6a2dedae882c497621ffe4a44c9e432495acf92737671d23954b7545.mp4"
+    },
+    {
+      "number": 5,
+      "filename": "005 - How to Add Links in HTML Web Development in 60 Seconds - NwK_T8Qxams.mp4",
+      "topic": "How to Add Links in HTML",
+      "sha256": "1fccbb7c24f51c717e02c914f58803131d8b1e3bee0298e0c0b25ebf8c2cf9f9",
+      "bytes": 4653117,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/005-1fccbb7c24f51c717e02c914f58803131d8b1e3bee0298e0c0b25ebf8c2cf9f9.mp4"
+    },
+    {
+      "number": 6,
+      "filename": "006 - How to Add Images in HTML Web Development in 60 Seconds - UdFrS1p0n2Q.mp4",
+      "topic": "How to Add Images in HTML",
+      "sha256": "bc15870e5a2a9e696bfefda81561eadb189aa4e42aed4e3a8800f231c37d3cb6",
+      "bytes": 4683207,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/006-bc15870e5a2a9e696bfefda81561eadb189aa4e42aed4e3a8800f231c37d3cb6.mp4"
+    },
+    {
+      "number": 7,
+      "filename": "007 - HTML Lists Explained Web Development in 60 Seconds - ZCMbUuFgbHw.mp4",
+      "topic": "HTML Lists Explained",
+      "sha256": "104ef9b0f5efd9585d53487560b5b3429f061fbea81d22af3ad7f089fbb41e5f",
+      "bytes": 4584906,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/007-104ef9b0f5efd9585d53487560b5b3429f061fbea81d22af3ad7f089fbb41e5f.mp4"
+    },
+    {
+      "number": 8,
+      "filename": "008 - HTML Buttons Web Development in 60 Seconds - emkJjvrZTeE.mp4",
+      "topic": "HTML Buttons",
+      "sha256": "4cccd6582168f98ad85ad75aa72ac1f8aebd89f7d284ace498dea3a9bbb54695",
+      "bytes": 4574986,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/008-4cccd6582168f98ad85ad75aa72ac1f8aebd89f7d284ace498dea3a9bbb54695.mp4"
+    },
+    {
+      "number": 9,
+      "filename": "009 - HTML Attributes Web Development in 60 Seconds - 5gQr8gC3yno.mp4",
+      "topic": "HTML Attributes",
+      "sha256": "d9ba1e3648b7a309fa0f2422485e4b6e99404404a21f68548c7aff369768e9da",
+      "bytes": 4644174,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/009-d9ba1e3648b7a309fa0f2422485e4b6e99404404a21f68548c7aff369768e9da.mp4"
+    },
+    {
+      "number": 10,
+      "filename": "010 - HTML Div vs Span Web Development in 60 Seconds - uX0pUdeNRhs.mp4",
+      "topic": "HTML Div vs Span",
+      "sha256": "b1290709337a8501b482284abb876d1b911cad124ccad1f991ddffbe85993e9a",
+      "bytes": 4588202,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/010-b1290709337a8501b482284abb876d1b911cad124ccad1f991ddffbe85993e9a.mp4"
+    },
+    {
+      "number": 11,
+      "filename": "011 - HTML Comments Web Development in 60 Seconds - PMmOSKNzM18.mp4",
+      "topic": "HTML Comments",
+      "sha256": "e4de41a1e56da252e0270d4feda4ef58b40f28393ab8843bc81db76d7525d424",
+      "bytes": 4492232,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/011-e4de41a1e56da252e0270d4feda4ef58b40f28393ab8843bc81db76d7525d424.mp4"
+    },
+    {
+      "number": 12,
+      "filename": "012 - HTML Line Breaks Web Development in 60 Seconds - s8vTrnbddoo.mp4",
+      "topic": "HTML Line Breaks",
+      "sha256": "76ac06cc1d521afb2836fd7fdcd508499d3ac4c6c2a2064c2c9d665ae9dca0b3",
+      "bytes": 4683519,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/012-76ac06cc1d521afb2836fd7fdcd508499d3ac4c6c2a2064c2c9d665ae9dca0b3.mp4"
+    },
+    {
+      "number": 13,
+      "filename": "013 - HTML Tables Web Development in 60 Seconds - yP-l14vRQME.mp4",
+      "topic": "HTML Tables",
+      "sha256": "aa7eb4d76382d0b8472587fd36d31ac8b251a929a2429f10835969401f2d7caf",
+      "bytes": 4545880,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/013-aa7eb4d76382d0b8472587fd36d31ac8b251a929a2429f10835969401f2d7caf.mp4"
+    },
+    {
+      "number": 14,
+      "filename": "014 - HTML Forms Introduction Web Development in 60 Seconds - PZeEmk-S7_w.mp4",
+      "topic": "HTML Forms Introduction",
+      "sha256": "d228b2b61de1f52b6c69e4df27cdc0d92ea413b92461f1f622859fd14c976fe0",
+      "bytes": 4787652,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/014-d228b2b61de1f52b6c69e4df27cdc0d92ea413b92461f1f622859fd14c976fe0.mp4"
+    },
+    {
+      "number": 15,
+      "filename": "015 - HTML Input Types Web Development in 60 Seconds - MEEDwR24JOw.mp4",
+      "topic": "HTML Input Types",
+      "sha256": "3fb44864a6b75907f0905d9c6a2f555d400abad071e6f3146ee448ea87398622",
+      "bytes": 4702959,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/015-3fb44864a6b75907f0905d9c6a2f555d400abad071e6f3146ee448ea87398622.mp4"
+    },
+    {
+      "number": 16,
+      "filename": "016 - HTML Checkboxes Radio Buttons Web Development in 60 Seconds - LYJz6pp8g9Y.mp4",
+      "topic": "HTML Checkboxes Radio Buttons",
+      "sha256": "ff03aebb09add488a3aa3dd4fe9432528fd2a80bbd0bdde196458695b80a9903",
+      "bytes": 4702933,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/016-ff03aebb09add488a3aa3dd4fe9432528fd2a80bbd0bdde196458695b80a9903.mp4"
+    },
+    {
+      "number": 17,
+      "filename": "017 - HTML Dropdown Menus Web Development in 60 Seconds - TgIcPIs9y34.mp4",
+      "topic": "HTML Dropdown Menus",
+      "sha256": "72c4a01ee62e4e53806be78971ff27e81de4847bf240ff4296b40ae65c36c6bb",
+      "bytes": 4672317,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/017-72c4a01ee62e4e53806be78971ff27e81de4847bf240ff4296b40ae65c36c6bb.mp4"
+    },
+    {
+      "number": 18,
+      "filename": "018 - Semantic HTML Web Development in 60 Seconds - oBrUM1-EbwI.mp4",
+      "topic": "Semantic HTML",
+      "sha256": "42239eb57a706675c86245109cc5cfd052ce9ec2dd62a7b04ef98d97e0cada1a",
+      "bytes": 4665561,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/018-42239eb57a706675c86245109cc5cfd052ce9ec2dd62a7b04ef98d97e0cada1a.mp4"
+    },
+    {
+      "number": 19,
+      "filename": "019 - HTML Audio Video Web Development in 60 Seconds - OKr0Qgf5Eec.mp4",
+      "topic": "HTML Audio Video",
+      "sha256": "df4357cba239f25f24ee0dc3277b8b42208169ff06a40bec6c2b319ba97df9d9",
+      "bytes": 4697502,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/019-df4357cba239f25f24ee0dc3277b8b42208169ff06a40bec6c2b319ba97df9d9.mp4"
+    },
+    {
+      "number": 20,
+      "filename": "020 - HTML Meta Tags Web Development in 60 Seconds - 3OFT8MUb6Gw.mp4",
+      "topic": "HTML Meta Tags",
+      "sha256": "4b1f63f185f93194d91c87262931253ae512d8d125284968af23f0404a3dea7d",
+      "bytes": 4590777,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/020-4b1f63f185f93194d91c87262931253ae512d8d125284968af23f0404a3dea7d.mp4"
+    },
+    {
+      "number": 21,
+      "filename": "021 - What Is CSS Web Development in 60 Seconds - M7XIh0LLmWw.mp4",
+      "topic": "What Is CSS",
+      "sha256": "17119bf8b2c06a33b8c5c2117d654b90744286779ba6a34f57ac573ef6aabaa0",
+      "bytes": 4509172,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/021-17119bf8b2c06a33b8c5c2117d654b90744286779ba6a34f57ac573ef6aabaa0.mp4"
+    },
+    {
+      "number": 22,
+      "filename": "022 - Three Ways to Add CSS Web Development in 60 Seconds - XI8c12LzDI8.mp4",
+      "topic": "Three Ways to Add CSS",
+      "sha256": "af68f1596400d3e46e4d75a24c90d30778ac019ed229b628e92141cda86c1ac8",
+      "bytes": 4632765,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/022-af68f1596400d3e46e4d75a24c90d30778ac019ed229b628e92141cda86c1ac8.mp4"
+    }
+  ]
+}
