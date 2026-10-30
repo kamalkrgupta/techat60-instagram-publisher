@@ -1,0 +1,48 @@
+name: Instagram daily publisher
+on:
+  schedule:
+    # IST: 18:45 preflight/wait, 19:00 retry, 19:15 retry. GitHub can delay these events.
+    - cron: '15,30,45 13 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Read-only check or approved daily publication (daily/time guards apply)'
+        type: choice
+        options: [check, publish]
+        default: check
+permissions:
+  contents: write
+concurrency:
+  group: techat60-instagram-publisher
+  cancel-in-progress: false
+jobs:
+  instagram:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --no-cache-dir -r requirements-cloud.txt
+          if ! command -v ffmpeg >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq ffmpeg
+          fi
+      - name: Run automated tests
+        run: python -m unittest discover -s tests
+      - name: Check or publish one Reel
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_STATE_KEY: ${{ secrets.INSTAGRAM_STATE_KEY }}
+          INSTAGRAM_CLOUD_ENABLED: ${{ secrets.INSTAGRAM_CLOUD_ENABLED }}
+          CAPTION_MODE: fallback
+          OPENAI_API_KEY: ''
+          PUBLISH_BACKEND: github-actions
+          EVENT_MODE: ${{ github.event_name == 'schedule' && 'publish' || inputs.mode }}
+        run: python -u cloud_runner.py --mode "$EVENT_MODE"

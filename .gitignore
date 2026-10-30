@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.instagram-runtime/
+*.sqlite3*
+data/
+logs/
+.tools/
+.github-state-key
+.github-deployment.json
+activation.json
+publication-approval.json
