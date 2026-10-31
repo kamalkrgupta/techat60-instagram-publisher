@@ -66,13 +66,13 @@ def prepare_upload(video,root):
  """Create a Meta-compatible derivative inside Instagram project only."""
  import os,tempfile
  validate_video(video)
- folder=Path(root)/'data/prepared';folder.mkdir(parents=True,exist_ok=True,mode=0o700);target=folder/(video.sha256+'.mp4')
+ folder=Path(root)/'data/prepared';folder.mkdir(parents=True,exist_ok=True,mode=0o700);target=folder/(video.sha256+'-h264-v2.mp4')
  if target.exists():return target
  ffmpeg=shutil.which('ffmpeg') or ('/opt/homebrew/bin/ffmpeg' if Path('/opt/homebrew/bin/ffmpeg').exists() else None)
- if not ffmpeg:raise RuntimeError('ffmpeg is needed to prepare AAC 128k/no-edit-list upload media. Original files remain unchanged.')
+ if not ffmpeg:raise RuntimeError('ffmpeg is needed to prepare H264/AAC/no-edit-list upload media. Original files remain unchanged.')
  fd,name=tempfile.mkstemp(suffix='.mp4',dir=folder);os.close(fd)
  try:
-  r=subprocess.run([ffmpeg,'-y','-v','error','-i',str(video.path),'-map','0:v:0','-map','0:a:0','-c:v','copy','-c:a','aac','-b:a','128k','-ar','48000','-ac','2','-movflags','+faststart','-use_editlist','0',name],capture_output=True,timeout=180)
+  r=subprocess.run([ffmpeg,'-y','-v','error','-i',str(video.path),'-map','0:v:0','-map','0:a:0','-c:v','libx264','-preset','fast','-crf','23','-pix_fmt','yuv420p','-profile:v','high','-level:v','4.1','-r','30','-threads','2','-c:a','aac','-b:a','128k','-ar','48000','-ac','2','-movflags','+faststart','-use_editlist','0',name],capture_output=True,timeout=180)
   if r.returncode:raise RuntimeError('Instagram-local MP4 preparation failed; original unchanged.')
   os.chmod(name,0o600);os.replace(name,target)
  finally:Path(name).unlink(missing_ok=True)

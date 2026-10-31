@@ -41,7 +41,11 @@ class MetaClient:
     r=self.session.post(uri,headers={'Authorization':'OAuth '+self.c.token,'offset':'0','file_size':str(path.stat().st_size),'Content-Type':'application/octet-stream','Content-Length':str(path.stat().st_size)},data=stream,timeout=(15,300),allow_redirects=False)
    body=r.json()
   except (requests.RequestException,ValueError) as e:raise MetaError('Binary upload outcome uncertain ('+type(e).__name__+'); reconcile container before any retry.',uncertain=True) from None
-  if not 200<=r.status_code<300 or body.get('success') is not True:raise MetaError('Binary upload was not confirmed (HTTP '+str(r.status_code)+'). Reconcile the existing container.',uncertain=True)
+  if not 200<=r.status_code<300 or body.get('success') is not True:
+   import re
+   kind=body.get('debug_info',{}).get('type','') if isinstance(body.get('debug_info'),dict) else ''
+   kind=re.sub('[^A-Za-z0-9_]','',str(kind))[:80]
+   raise MetaError('Binary upload was not confirmed (HTTP '+str(r.status_code)+', type '+kind+'). Reconcile the existing container.',uncertain=True)
  def container(self,ident):return self.get(ident,fields='id,status_code,status')
  def wait_finished(self,ident):
   for attempt in range(self.c.poll_attempts):
