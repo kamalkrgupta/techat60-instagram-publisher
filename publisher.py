@@ -72,9 +72,13 @@ class Publisher:
    upload_file=prepare_upload(video,self.c.root)
    job=self.db.update(job['id'],'UPLOADING')
    try:self.meta.upload(job['upload_uri'],upload_file)
+   except MetaError as e:
+    # A lost/error upload response does not prove Meta rejected the bytes.
+    # Poll this exact container below; never resend bytes or create another here.
+    job=self.db.update(job['id'],'UPLOAD_UNKNOWN',error=str(e))
    except Exception:
     self.db.update(job['id'],'UPLOAD_UNKNOWN',error='Binary transfer outcome uncertain. Poll existing container; do not guess offsets.');raise
-   job=self.db.update(job['id'],'PROCESSING')
+   else:job=self.db.update(job['id'],'PROCESSING')
   if job['status'] in ('UPLOADING','UPLOAD_UNKNOWN','PROCESSING'):
    try:state=self.meta.wait_finished(job['container_id'])
    except MetaError as e:

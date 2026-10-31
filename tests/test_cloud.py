@@ -81,6 +81,18 @@ class CloudTests(Base):
    with self.assertRaises(CloudStateError):authorize_catchup(self.config,self.db,'2026-10-29',self.video.sha256,{'sha256':self.video.sha256})
    self.ready_job()
    with self.assertRaises(CloudStateError):authorize_catchup(self.config,self.db,'2026-10-30',self.video.sha256,{'sha256':self.video.sha256})
+ def test_catchup_retry_can_resume_only_its_authorized_hash(self):
+  self.config.now.return_value=self.now.replace(day=31,hour=10)
+  with patch.dict(os.environ,{'GITHUB_EVENT_NAME':'workflow_dispatch'}):
+   authorize_catchup(self.config,self.db,'2026-10-30',self.video.sha256,{'sha256':self.video.sha256})
+   self.db.reserve('2026-10-31',self.video,'caption')
+   authorize_catchup(self.config,self.db,'2026-10-30',self.video.sha256,{'sha256':self.video.sha256})
+  self.assertEqual(len(self.db.jobs()),1)
+ def test_lost_upload_response_polls_existing_container_without_reupload(self):
+  from meta_client import MetaError
+  j=self.ready_job();j=self.db.update(j['id'],'CREATED');m=self.fake_meta();m.upload.side_effect=MetaError('Upload response lost',uncertain=True);m.wait_finished.return_value='FINISHED'
+  with patch('publisher.prepare_upload',return_value=self.path):result=Publisher(self.config,self.db,m).prepare_private(j)
+  self.assertEqual(result['status'],'READY');m.create.assert_not_called();m.upload.assert_called_once();m.wait_finished.assert_called_once_with('container');m.publish.assert_not_called()
  def test_public_export_never_includes_credentials_plain_database_or_key(self):
   from github_deploy import PUBLIC_FILES
   self.assertNotIn('.env',PUBLIC_FILES);self.assertFalse(any('sqlite3' in f or 'state-key' in f for f in PUBLIC_FILES));self.assertIn('.github/workflows/instagram-daily.yml',PUBLIC_FILES)

@@ -44,7 +44,11 @@ def authorize_catchup(c,db,missed_date,expected_sha256,candidate):
  if not 1<=(c.now().date()-missed).days<=7:raise CloudStateError('Catch-up date must be within the previous seven days.')
  if db.used_day(missed.isoformat()):raise CloudStateError('The missed date already has a confirmed Reel.')
  if db.used_day(c.now().date().isoformat()):raise CloudStateError('Today already has a confirmed Reel; daily limit remains in force.')
- if db.pending():raise CloudStateError('Reconcile pending jobs before authorizing catch-up.')
+ pending=db.pending()
+ if pending:
+  try:previous=json.loads(db.setting('last_catchup_authorization','{}'))
+  except ValueError:previous={}
+  if previous.get('sha256')!=expected_sha256 or previous.get('missed_date')!=missed.isoformat() or any(j['sha256']!=expected_sha256 or j['local_day']!=c.now().date().isoformat() for j in pending):raise CloudStateError('Reconcile unrelated pending jobs before authorizing catch-up.')
  if not candidate or not expected_sha256 or candidate['sha256']!=expected_sha256:raise CloudStateError('Catch-up content does not match the explicitly requested hash.')
  if expected_sha256 in db.published_hashes():raise CloudStateError('Catch-up content was already published.')
  # Only the time-of-day gate changes for this invocation. Actual time, account,
