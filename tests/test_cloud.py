@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import Mock,patch
 from test_system import Base
 from github_store import StateStore,CloudStateError,encode_state,decode_state,snapshot
-from cloud_runner import download_video
+from cloud_runner import download_video,authorize_catchup
 from publisher import Publisher
 class MemoryGitHub:
  repo='owner/reels'
@@ -66,6 +66,21 @@ class CloudTests(Base):
   self.assertEqual(result['status'],'OUTSIDE_PRESTAGE_WINDOW');m.create.assert_not_called();m.publish.assert_not_called()
  def test_local_publisher_cannot_use_cloud_prestaging(self):
   m=self.fake_meta();result=Publisher(self.config,self.db,m).stage_next();self.assertEqual(result['status'],'PRESTAGE_DISABLED');m.create.assert_not_called()
+ def test_explicit_catchup_uses_real_today_and_retains_daily_limit(self):
+  self.config.now.return_value=self.now.replace(day=31,hour=10)
+  with patch.dict(os.environ,{'GITHUB_EVENT_NAME':'workflow_dispatch'}):authorize_catchup(self.config,self.db,'2026-10-30',self.video.sha256,{'sha256':self.video.sha256})
+  self.assertTrue(self.config.due());self.assertEqual(self.config.now().day,31)
+  self.assertIn('2026-10-30',self.db.setting('last_catchup_authorization'))
+ def test_scheduled_runs_cannot_authorize_catchup(self):
+  with patch.dict(os.environ,{'GITHUB_EVENT_NAME':'schedule'}):
+   with self.assertRaises(CloudStateError):authorize_catchup(self.config,self.db,'2026-10-29',self.video.sha256,{'sha256':self.video.sha256})
+ def test_catchup_rejects_wrong_hash_published_date_and_pending_jobs(self):
+  self.config.now.return_value=self.now.replace(day=31,hour=10)
+  with patch.dict(os.environ,{'GITHUB_EVENT_NAME':'workflow_dispatch'}):
+   with self.assertRaises(CloudStateError):authorize_catchup(self.config,self.db,'2026-10-30','wrong',{'sha256':self.video.sha256})
+   with self.assertRaises(CloudStateError):authorize_catchup(self.config,self.db,'2026-10-29',self.video.sha256,{'sha256':self.video.sha256})
+   self.ready_job()
+   with self.assertRaises(CloudStateError):authorize_catchup(self.config,self.db,'2026-10-30',self.video.sha256,{'sha256':self.video.sha256})
  def test_public_export_never_includes_credentials_plain_database_or_key(self):
   from github_deploy import PUBLIC_FILES
   self.assertNotIn('.env',PUBLIC_FILES);self.assertFalse(any('sqlite3' in f or 'state-key' in f for f in PUBLIC_FILES));self.assertIn('.github/workflows/instagram-daily.yml',PUBLIC_FILES)

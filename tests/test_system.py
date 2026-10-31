@@ -15,6 +15,7 @@ class Base(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name).resolve();self.source=self.root/'source';self.source.mkdir();self.config=Config(root=self.root,video_folder=self.source,token='SECRET_TOKEN',openai_key='')
   self.now=datetime(2026,10,30,19,0,tzinfo=self.config.zone);self.config.now=Mock(return_value=self.now)
+  self.clock=patch('database.stamp',side_effect=lambda:self.config.now().isoformat());self.clock.start();self.addCleanup(self.clock.stop)
   self.db=Database(self.root/'data/test.db');self.db.set('seed_match','different')
   self.path=self.source/'002 - HTML Tags - abcdefghijk.mp4';self.path.write_bytes(b'fake-mp4-test');self.video=Video(self.path,2,'HTML Tags',sha(self.path))
  def tearDown(self):self.db.conn.close();self.temp.cleanup()

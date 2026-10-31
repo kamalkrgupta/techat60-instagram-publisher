@@ -1,15 +1,24 @@
 name: Instagram daily publisher
 on:
   schedule:
-    # IST: 18:45 preflight/wait, 19:00 retry, 19:15 retry. GitHub can delay these events.
+    # IST 18:45 preflight, then retries through 21:45. Application time/day guards apply.
     - cron: '15,30,45 13 * * *'
+    - cron: '0,15,30,45 14-16 * * *'
   workflow_dispatch:
     inputs:
       mode:
         description: 'Read-only check or approved daily publication (daily/time guards apply)'
         type: choice
-        options: [check, publish]
+        options: [check, publish, catchup]
         default: check
+      missed_date:
+        description: 'Explicit catch-up only: missed local date YYYY-MM-DD'
+        type: string
+        default: ''
+      expected_sha256:
+        description: 'Explicit catch-up only: exact source SHA-256'
+        type: string
+        default: ''
 permissions:
   contents: write
 concurrency:
@@ -45,4 +54,6 @@ jobs:
           OPENAI_API_KEY: ''
           PUBLISH_BACKEND: github-actions
           EVENT_MODE: ${{ github.event_name == 'schedule' && 'publish' || inputs.mode }}
-        run: python -u cloud_runner.py --mode "$EVENT_MODE"
+          MISSED_DATE: ${{ inputs.missed_date }}
+          EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+        run: python -u cloud_runner.py --mode "$EVENT_MODE" --missed-date "$MISSED_DATE" --expected-sha256 "$EXPECTED_SHA256"

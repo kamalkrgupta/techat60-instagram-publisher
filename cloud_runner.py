@@ -1,7 +1,7 @@
 """GitHub-hosted publisher; no Mac access and no ephemeral-only post state."""
 import argparse,base64,hashlib,json,logging,os,time
 from pathlib import Path
-from datetime import timedelta
+from datetime import date,timedelta
 from urllib.parse import quote,urlsplit
 import requests
 from config import Config,prepare_storage,secure_json
@@ -36,8 +36,24 @@ def download_video(entry,folder,repo,session=None):
  finally:temporary.unlink(missing_ok=True)
  return target
 
+def authorize_catchup(c,db,missed_date,expected_sha256,candidate):
+ """Explicit manual recovery only; retain real publication date and daily/hash guards."""
+ if os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('Catch-up requires a manual workflow dispatch.')
+ try:missed=date.fromisoformat(missed_date)
+ except (ValueError,TypeError):raise CloudStateError('A valid missed date is required.') from None
+ if not 1<=(c.now().date()-missed).days<=7:raise CloudStateError('Catch-up date must be within the previous seven days.')
+ if db.used_day(missed.isoformat()):raise CloudStateError('The missed date already has a confirmed Reel.')
+ if db.used_day(c.now().date().isoformat()):raise CloudStateError('Today already has a confirmed Reel; daily limit remains in force.')
+ if db.pending():raise CloudStateError('Reconcile pending jobs before authorizing catch-up.')
+ if not candidate or not expected_sha256 or candidate['sha256']!=expected_sha256:raise CloudStateError('Catch-up content does not match the explicitly requested hash.')
+ if expected_sha256 in db.published_hashes():raise CloudStateError('Catch-up content was already published.')
+ # Only the time-of-day gate changes for this invocation. Actual time, account,
+ # real-day reservation, remote duplicate checks and durable checkpoints remain.
+ c.due=lambda now=None:True
+ db.set('last_catchup_authorization',json.dumps({'missed_date':missed.isoformat(),'actual_date':c.now().date().isoformat(),'sha256':expected_sha256}))
+
 def main():
- p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish'],default='check');args=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish','catchup'],default='check');p.add_argument('--missed-date',default='');p.add_argument('--expected-sha256',default='');args=p.parse_args()
  if os.environ.get('GITHUB_ACTIONS')!='true':raise CloudStateError('Cloud runner is only enabled inside GitHub Actions.')
  repo=os.environ['GITHUB_REPOSITORY'];token=os.environ['GITHUB_TOKEN'];key=base64.b64decode(os.environ['INSTAGRAM_STATE_KEY'],validate=True)
  if len(key)!=32:raise CloudStateError('Invalid state encryption key.')
@@ -79,7 +95,8 @@ def main():
  # Start early and wait toward 19:00, allowing scheduler/setup overhead; no exact-time guarantee.
  now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0);wait=(target-now).total_seconds()
  publisher=Publisher(c,db)
- if 0<wait<=16*60:
+ if args.mode=='catchup':authorize_catchup(c,db,args.missed_date,args.expected_sha256,candidate)
+ if args.mode!='catchup' and 0<wait<=16*60:
   staged=publisher.stage_next()
   print('Cloud preflight result:',staged.get('status'),'— waiting toward 19:00 IST.',flush=True)
   wait=(target-c.now()).total_seconds()
