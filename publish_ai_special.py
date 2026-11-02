@@ -34,6 +34,12 @@ class SpecialLedger(Database):
   ident=uuid.uuid4().hex;now=stamp()
   with self.conn:self.conn.execute('INSERT INTO special_jobs(id,local_day,filename,sha256,caption,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)',(ident,day,str(video.path),video.sha256,caption,'CREATING',now,now))
   self.notify();return self.job(ident)
+ def bind_source(self,job,video):
+  if job['sha256']!=video.sha256 or sha(video.path)!=video.sha256:raise RuntimeError('Special source hash changed; no path rebinding allowed.')
+  if job['filename']!=str(video.path):
+   with self.conn:self.conn.execute('UPDATE special_jobs SET filename=?,updated_at=? WHERE id=? AND sha256=?',(str(video.path),stamp(),job['id'],video.sha256))
+   self.notify()
+  return self.job(job['id'])
  def update(self,ident,status=None,**values):
   if not set(values)<={'container_id','upload_uri','media_id','permalink','publish_attempt_at','published_at','error','attempts'}:raise ValueError('Invalid special job field')
   values['updated_at']=stamp()
@@ -103,6 +109,7 @@ def main():
   if previous:
    confirmed=m.media(previous['media_id']);print(json.dumps(confirmed,indent=2));return
   job=db.for_hash(DIGEST);p=Publisher(c,db,m)
+  if job:job=db.bind_source(job,video)
   if not job:
    if m.find_caption(CAPTION):raise RuntimeError('Matching caption already exists; reconcile before publishing.')
    job=db.reserve_special(c.now().date().isoformat(),video,CAPTION)

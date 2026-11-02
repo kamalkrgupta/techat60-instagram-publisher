@@ -120,6 +120,13 @@ class CloudTests(Base):
   from publish_ai_special import SpecialLedger
   special=SpecialLedger(self.root/'data/special-recovery.db');j=special.reserve_special(self.now.date().isoformat(),self.video,'special caption');j=special.update(j['id'],'PUBLISH_UNKNOWN',container_id='c');m=self.fake_meta();m.container.return_value={'status_code':'PUBLISHED'};m.find_caption.return_value=[{'id':'special-found','timestamp':self.now.isoformat()}]
   result=Publisher(self.config,special,m).reconcile(j);self.assertEqual(result['status'],'PUBLISHED');m.publish.assert_not_called();self.assertIn(self.video.sha256,special.published_hashes());special.conn.close()
+ def test_special_rebinds_verified_source_when_moving_to_cloud(self):
+  from publish_ai_special import SpecialLedger
+  from video_source import Video
+  special=SpecialLedger(self.root/'data/rebind.db');old=Video(Path('/different-machine/video.mp4'),0,'special',self.video.sha256);j=special.reserve_special(self.now.date().isoformat(),old,'caption');j=special.update(j['id'],'CREATED',container_id='existing-private')
+  special.on_commit=Mock();updated=special.bind_source(j,self.video);self.assertEqual(updated['filename'],str(self.path));self.assertEqual(updated['container_id'],'existing-private');self.assertEqual(updated['status'],'CREATED');special.on_commit.assert_called_once()
+  with self.assertRaises(RuntimeError):special.bind_source(updated,Video(self.path,0,'wrong','wrong-hash'))
+  special.conn.close()
  def test_public_export_never_includes_credentials_plain_database_or_key(self):
   from github_deploy import PUBLIC_FILES
   self.assertNotIn('.env',PUBLIC_FILES);self.assertFalse(any('sqlite3' in f or 'state-key' in f for f in PUBLIC_FILES));self.assertIn('.github/workflows/instagram-daily.yml',PUBLIC_FILES)
