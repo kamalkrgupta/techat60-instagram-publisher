@@ -11,7 +11,7 @@ from maintenance import write_env
 NAME='techat60-instagram-publisher'
 DESCRIPTION='Automated Instagram Reels publisher for TECH AT 60; free GitHub Actions'
 STATE_FILE=ROOT/'.github-deployment.json';KEY_FILE=ROOT/'.github-state-key';GH=ROOT/'.tools/gh'
-PUBLIC_FILES=['github_deploy.py','maintenance.py','config.py','database.py','meta_client.py','caption_generator.py','video_source.py','publisher.py','reel_queue.py','scheduler.py','github_store.py','cloud_runner.py','requirements-cloud.txt','.github/workflows/instagram-daily.yml','tests/test_system.py','tests/test_queue.py','tests/test_cloud.py']
+PUBLIC_FILES=['publish_ai_special.py','cloud/special-ai-friend.json','github_deploy.py','maintenance.py','config.py','database.py','meta_client.py','caption_generator.py','video_source.py','publisher.py','reel_queue.py','scheduler.py','github_store.py','cloud_runner.py','requirements-cloud.txt','.github/workflows/instagram-daily.yml','tests/test_system.py','tests/test_queue.py','tests/test_cloud.py']
 
 def command(args,input=None,check=True):
  r=subprocess.run(list(map(str,args)),input=input,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,cwd=ROOT)
@@ -103,7 +103,7 @@ def refresh_mirror(api,c,key):
 def export_files():
  files={name:(ROOT/name).read_text() for name in PUBLIC_FILES}
  files['README.md']=(ROOT/'README-CLOUD.md').read_text()
- files['.gitignore']='.env\n.venv/\n__pycache__/\n*.pyc\n.instagram-runtime/\n*.sqlite3*\ndata/\nlogs/\n.tools/\n.github-state-key\n.github-deployment.json\nactivation.json\npublication-approval.json\n'
+ files['.gitignore']='.env\n.venv/\n__pycache__/\n*.pyc\n.instagram-runtime/\n.special-runtime/\n*.sqlite3*\ndata/\nlogs/\n.tools/\n.github-state-key\n.github-deployment.json\nactivation.json\npublication-approval.json\n'
  c=Config.load()
  secrets=[c.token,c.app_secret,c.openai_key,c.app_access_token]
  if KEY_FILE.exists():secrets.append(KEY_FILE.read_text().strip())

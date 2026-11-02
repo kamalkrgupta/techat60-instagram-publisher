@@ -13,7 +13,7 @@ on:
       mode:
         description: 'Read-only check or approved daily publication (daily/time guards apply)'
         type: choice
-        options: [check, publish, catchup]
+        options: [check, publish, catchup, special]
         default: check
       missed_date:
         description: 'Explicit catch-up only: missed local date YYYY-MM-DD'
@@ -60,4 +60,11 @@ jobs:
           EVENT_MODE: ${{ github.event_name == 'schedule' && 'publish' || inputs.mode }}
           MISSED_DATE: ${{ inputs.missed_date }}
           EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
-        run: python -u cloud_runner.py --mode "$EVENT_MODE" --missed-date "$MISSED_DATE" --expected-sha256 "$EXPECTED_SHA256"
+          SPECIAL_PROJECT_ROOT: ${{ github.workspace }}/.special-runtime/source
+          SPECIAL_APPROVED_SHA: ${{ inputs.expected_sha256 }}
+        run: |
+          if [ "$EVENT_MODE" = "special" ]; then
+            python -u publish_ai_special.py
+          else
+            python -u cloud_runner.py --mode "$EVENT_MODE" --missed-date "$MISSED_DATE" --expected-sha256 "$EXPECTED_SHA256"
+          fi

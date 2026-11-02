@@ -105,6 +105,21 @@ class CloudTests(Base):
   self.config.now.return_value=self.now.replace(hour=10)
   for candidate,event in [(True,'workflow_dispatch'),(False,'schedule')]:
    _,code=assess_result(self.config,self.db,{'status':'OUTSIDE_PUBLISH_WINDOW'},candidate,event);self.assertEqual(code,0)
+ def test_special_publication_requires_explicit_manual_hash(self):
+  from publish_ai_special import cloud_inputs
+  with patch.dict(os.environ,{'GITHUB_ACTIONS':'true','GITHUB_EVENT_NAME':'schedule','SPECIAL_APPROVED_SHA':'wrong','INSTAGRAM_CLOUD_ENABLED':'true'}),patch('requests.Session.request') as request:
+   with self.assertRaises(RuntimeError):cloud_inputs()
+  request.assert_not_called()
+ def test_special_record_does_not_overwrite_regular_daily_job(self):
+  from publish_ai_special import SpecialLedger
+  from video_source import Video
+  regular=self.ready_job();special=SpecialLedger(self.root/'data/test.db')
+  job=special.reserve_special(self.now.date().isoformat(),Video(self.path,0,'special','separate-special-hash'),'special caption');special.update(job['id'],'READY',container_id='special-container')
+  self.assertEqual(self.db.job(regular['id'])['status'],'READY');self.assertIsNone(self.db.job(job['id']));special.conn.close()
+ def test_special_uncertain_publication_recovers_without_republishing(self):
+  from publish_ai_special import SpecialLedger
+  special=SpecialLedger(self.root/'data/special-recovery.db');j=special.reserve_special(self.now.date().isoformat(),self.video,'special caption');j=special.update(j['id'],'PUBLISH_UNKNOWN',container_id='c');m=self.fake_meta();m.container.return_value={'status_code':'PUBLISHED'};m.find_caption.return_value=[{'id':'special-found','timestamp':self.now.isoformat()}]
+  result=Publisher(self.config,special,m).reconcile(j);self.assertEqual(result['status'],'PUBLISHED');m.publish.assert_not_called();self.assertIn(self.video.sha256,special.published_hashes());special.conn.close()
  def test_public_export_never_includes_credentials_plain_database_or_key(self):
   from github_deploy import PUBLIC_FILES
   self.assertNotIn('.env',PUBLIC_FILES);self.assertFalse(any('sqlite3' in f or 'state-key' in f for f in PUBLIC_FILES));self.assertIn('.github/workflows/instagram-daily.yml',PUBLIC_FILES)

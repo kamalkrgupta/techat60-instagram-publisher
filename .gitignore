@@ -3,6 +3,7 @@
 __pycache__/
 *.pyc
 .instagram-runtime/
+.special-runtime/
 *.sqlite3*
 data/
 logs/
