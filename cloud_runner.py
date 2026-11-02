@@ -56,6 +56,17 @@ def authorize_catchup(c,db,missed_date,expected_sha256,candidate):
  c.due=lambda now=None:True
  db.set('last_catchup_authorization',json.dumps({'missed_date':missed.isoformat(),'actual_date':c.now().date().isoformat(),'sha256':expected_sha256}))
 
+def assess_result(c,db,result,has_candidate,event):
+ """A scheduler invocation is not a success when its intended daily slot was missed."""
+ if result.get('status')=='OUTSIDE_PUBLISH_WINDOW' and event=='schedule' and has_candidate:
+  now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0)
+  # The only automatic triggers are evening slots. An overnight arrival belongs
+  # to yesterday; do not falsify the clock or post a backlog on that basis.
+  if now<target-timedelta(minutes=16):target-=timedelta(days=1)
+  if now>target+timedelta(minutes=c.grace_minutes) and not db.used_day(target.date().isoformat()):
+   return {'status':'MISSED_PUBLISH_WINDOW','intended_slot_IST':target.isoformat(),'confirmed_publication':False,'error':'Scheduled runner arrived after the allowed window; no automatic catch-up was attempted.'},2
+ return result,0
+
 def main():
  p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish','catchup'],default='check');p.add_argument('--missed-date',default='');p.add_argument('--expected-sha256',default='');args=p.parse_args()
  if os.environ.get('GITHUB_ACTIONS')!='true':raise CloudStateError('Cloud runner is only enabled inside GitHub Actions.')
@@ -106,10 +117,11 @@ def main():
   wait=(target-c.now()).total_seconds()
   if wait>0:time.sleep(wait)
  result=publisher.execute();store.persist(db)
+ result,exit_code=assess_result(c,db,result,candidate is not None,os.environ.get('GITHUB_EVENT_NAME',''))
  # Report fields cannot include the authenticated resumable upload URI.
- print(json.dumps({k:v for k,v in result.items() if k!='upload_uri'},indent=2));return 0
+ print(json.dumps({k:v for k,v in result.items() if k!='upload_uri'},indent=2));return exit_code
 if __name__=='__main__':
  try:raise SystemExit(main())
  except Exception as e:
   # Never print raw HTTP exceptions, secret-bearing URLs or decrypted state.
-  print(json.dumps({'status':'CLOUD_ERROR','error':str(e) if isinstance(e,CloudStateError) else type(e).__name__}));raise SystemExit(1)
+  print(json.dumps({'status':'CLOUD_ERROR','error':str(e) if isinstance(e,(CloudStateError,__import__('meta_client').MetaError)) else type(e).__name__}));raise SystemExit(1)

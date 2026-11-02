@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import Mock,patch
 from test_system import Base
 from github_store import StateStore,CloudStateError,encode_state,decode_state,snapshot
-from cloud_runner import download_video,authorize_catchup
+from cloud_runner import download_video,authorize_catchup,assess_result
 from publisher import Publisher
 class MemoryGitHub:
  repo='owner/reels'
@@ -93,6 +93,18 @@ class CloudTests(Base):
   j=self.ready_job();j=self.db.update(j['id'],'CREATED');m=self.fake_meta();m.upload.side_effect=MetaError('Upload response lost',uncertain=True);m.wait_finished.return_value='FINISHED'
   with patch('publisher.prepare_upload',return_value=self.path):result=Publisher(self.config,self.db,m).prepare_private(j)
   self.assertEqual(result['status'],'READY');m.create.assert_not_called();m.upload.assert_called_once();m.wait_finished.assert_called_once_with('container');m.publish.assert_not_called()
+ def test_delayed_schedule_cannot_report_success_after_missing_its_slot(self):
+  self.config.now.return_value=self.now.replace(day=31,hour=23)
+  result,code=assess_result(self.config,self.db,{'status':'OUTSIDE_PUBLISH_WINDOW'},True,'schedule')
+  self.assertEqual(code,2);self.assertEqual(result['status'],'MISSED_PUBLISH_WINDOW')
+ def test_overnight_delay_reports_the_previous_calendar_slot(self):
+  self.config.now.return_value=self.now.replace(day=31,hour=0,minute=15)
+  result,code=assess_result(self.config,self.db,{'status':'OUTSIDE_PUBLISH_WINDOW'},True,'schedule')
+  self.assertEqual(code,2);self.assertTrue(result['intended_slot_IST'].startswith('2026-10-30T19:00'))
+ def test_manual_early_run_or_complete_queue_is_not_a_missed_schedule(self):
+  self.config.now.return_value=self.now.replace(hour=10)
+  for candidate,event in [(True,'workflow_dispatch'),(False,'schedule')]:
+   _,code=assess_result(self.config,self.db,{'status':'OUTSIDE_PUBLISH_WINDOW'},candidate,event);self.assertEqual(code,0)
  def test_public_export_never_includes_credentials_plain_database_or_key(self):
   from github_deploy import PUBLIC_FILES
   self.assertNotIn('.env',PUBLIC_FILES);self.assertFalse(any('sqlite3' in f or 'state-key' in f for f in PUBLIC_FILES));self.assertIn('.github/workflows/instagram-daily.yml',PUBLIC_FILES)
