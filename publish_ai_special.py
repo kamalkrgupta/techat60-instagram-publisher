@@ -91,8 +91,11 @@ def main():
  if not a.get('valid') or not a.get('expiration_verified'):raise RuntimeError('Meta authentication is not verified.')
  if remote:api,key=remote
  else:api,key=GitHub(deployment()['repository'],auth()),read_key()
- active=api.request('GET',api.path('/actions/runs?status=in_progress&per_page=20')).get('workflow_runs',[])
- if any(str(r['id'])!=os.environ.get('GITHUB_RUN_ID') for r in active):raise RuntimeError('Wait for active cloud workflows before this operator publication.')
+ # Cloud executions share the existing workflow concurrency group. Local
+ # operator runs additionally check for an active cloud writer.
+ if not remote:
+  active=api.request('GET',api.path('/actions/runs?status=in_progress&per_page=20')).get('workflow_runs',[])
+  if active:raise RuntimeError('Wait for active cloud workflows before this operator publication.')
  with (ROOT/'data/special-publisher.lock').open('a') as lock,tempfile.TemporaryDirectory(dir=ROOT/'data',prefix='special-') as tmp:
   fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB);path=Path(tmp)/'state.sqlite3';store=StateStore(api,key);store.load(path);db=SpecialLedger(path);db.on_commit=lambda:store.persist(db)
   if db.pending():raise RuntimeError('Daily publication needs reconciliation before an extra post.')
