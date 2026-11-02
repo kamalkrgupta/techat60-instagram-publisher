@@ -6,7 +6,7 @@ One Reel daily for `@tech_at_60`, targeting **19:00 Asia/Kolkata**. Free determi
 
 This uses only standard Ubuntu GitHub-hosted runners in a **public repository**, GitHub Release assets, repository secrets and git-backed encrypted state. No larger runners, Git LFS, caches, Actions artifacts or paid scheduling services are configured. GitHub documents standard public-repository runner compute as free. Release inputs are copies of Shorts already published by the account owner on YouTube; no YouTube source, records or schedules are modified.
 
-Cron runs at 18:45, 19:00 and 19:15 IST (13:15/13:30/13:45 UTC). The early job downloads, validates and privately uploads/processes the next video, then waits toward 19:00 before issuing the public publish request. A private preflight container is never a published Reel. Later jobs retry safely. **GitHub can delay or drop scheduled events, so exact 19:00 publication cannot be guaranteed.** The publisher retains a 19:00–22:00 IST grace window and never bulk-posts a missed backlog.
+The workflow explicitly uses Asia/Kolkata: 18:45 preflight, quarter-hour retries from 19:00 through 21:45, and a final 22:00 run. The early job downloads, validates and privately uploads/processes the next video, then waits toward 19:00 before issuing the public publish request. A private preflight container is never a published Reel. Later jobs retry safely. **GitHub can delay or drop scheduled events, so exact 19:00 publication cannot be guaranteed.** The publisher retains a 19:00–22:00 IST grace window and never bulk-posts a missed backlog.
 
 ## Security and persistence
 
@@ -50,3 +50,6 @@ Official references:
 - https://docs.github.com/en/actions/how-tos/troubleshoot-workflows
 - https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases
 - https://github.com/fbsamples/reels_publishing_apis/tree/main/insta_reels_publishing_api_sample
+
+
+Missed-window monitoring: a scheduled run arriving after its intended evening window without a confirmed publication now fails with `MISSED_PUBLISH_WINDOW`; an overnight arrival is associated with the previous evening. This reports scheduler delays without changing the clock, duplicating posts or bulk-publishing. Meta authentication errors also fail the read-only check.
