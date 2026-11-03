@@ -1,13 +1,11 @@
 name: Instagram daily publisher
 on:
   schedule:
-    # Local-time preflight and retries. GitHub may delay events; application guards remain authoritative.
-    - cron: '45 18 * * *'
-      timezone: Asia/Kolkata
-    - cron: '0,15,30,45 19-21 * * *'
-      timezone: Asia/Kolkata
-    - cron: '0 22 * * *'
-      timezone: Asia/Kolkata
+    # Explicit UTC: 13:30 UTC = 19:00 Asia/Kolkata (IST has no DST).
+    # Prepare at 18:45 IST; retry safely through 22:00 IST.
+    - cron: '15,30,45 13 * * *'
+    - cron: '0,15,30,45 14-15 * * *'
+    - cron: '0,15,30 16 * * *'
   workflow_dispatch:
     inputs:
       mode:
