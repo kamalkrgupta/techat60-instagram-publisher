@@ -11,7 +11,7 @@ from meta_client import MetaClient,MetaError
 from caption_generator import CaptionGenerator
 from reel_queue import sync_queue
 class Publisher:
- def __init__(self,c,db,meta=None,captions=None):self.c=c;self.db=db;self.meta=meta or MetaClient(c);self.captions=captions or CaptionGenerator(c)
+ def __init__(self,c,db,meta=None,captions=None,source_url=None):self.c=c;self.db=db;self.meta=meta or MetaClient(c);self.captions=captions or CaptionGenerator(c);self.source_url=source_url
  def reconcile(self,job):
   """READ only at Meta. Never resend media_publish after an uncertain response."""
   if job.get('media_id'):
@@ -62,10 +62,14 @@ class Publisher:
   if job['status'] in ('CREATING','CREATE_UNKNOWN','FAILED','EXPIRED'):
    if job['attempts']>=3:raise RuntimeError('Three private-container attempts used today; operator review required.')
    job=self.db.update(job['id'],'CREATING',attempts=job['attempts']+1,error=None)
-   try:container,uri=self.meta.create(job['caption'])
+   try:
+    if self.source_url:
+     validate_video(Video(Path(job['filename']),0,'',job['sha256']))
+     container=self.meta.create_url(self.source_url,job['caption']);uri=None
+    else:container,uri=self.meta.create(job['caption'])
    except Exception:
     self.db.update(job['id'],'CREATE_UNKNOWN',error='Container creation outcome unknown. No publication was requested.');raise
-   job=self.db.update(job['id'],'CREATED',container_id=container,upload_uri=uri)
+   job=self.db.update(job['id'],'PROCESSING' if self.source_url else 'CREATED',container_id=container,upload_uri=uri)
   video=Video(Path(job['filename']),0,'',job['sha256'])
   if job['status']=='CREATED':
    # File identity is rechecked before every upload; conversion is project-local.

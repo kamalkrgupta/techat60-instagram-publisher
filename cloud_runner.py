@@ -68,7 +68,7 @@ def assess_result(c,db,result,has_candidate,event):
  return result,0
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish','catchup'],default='check');p.add_argument('--missed-date',default='');p.add_argument('--expected-sha256',default='');args=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish','catchup'],default='check');p.add_argument('--missed-date',default='');p.add_argument('--expected-sha256',default='');p.add_argument('--transport',choices=['direct','url'],default='direct');args=p.parse_args()
  if os.environ.get('GITHUB_ACTIONS')!='true':raise CloudStateError('Cloud runner is only enabled inside GitHub Actions.')
  repo=os.environ['GITHUB_REPOSITORY'];token=os.environ['GITHUB_TOKEN'];key=base64.b64decode(os.environ['INSTAGRAM_STATE_KEY'],validate=True)
  if len(key)!=32:raise CloudStateError('Invalid state encryption key.')
@@ -109,7 +109,15 @@ def main():
  store.persist(db)
  # Start early and wait toward 19:00, allowing scheduler/setup overhead; no exact-time guarantee.
  now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0);wait=(target-now).total_seconds()
- publisher=Publisher(c,db)
+ source_url=None
+ if args.transport=='url':
+  if args.mode!='catchup' or os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('URL recovery requires an explicitly authorized manual catch-up.')
+  if not candidate or candidate['sha256']!=args.expected_sha256:raise CloudStateError('URL recovery hash does not match the next candidate.')
+  source_url=candidate['download_url'];u=urlsplit(source_url)
+  if u.scheme!='https' or u.hostname!='github.com' or not u.path.startswith('/'+repo+'/releases/download/') or u.username or u.password:raise CloudStateError('URL recovery asset must belong to this repository.')
+  for job in db.pending():
+   if job['status'] not in ('PROCESSING','READY') or job.get('upload_uri') or job['sha256']!=args.expected_sha256:raise CloudStateError('Reconcile the existing direct upload before URL recovery.')
+ publisher=Publisher(c,db,source_url=source_url)
  if args.mode=='catchup':authorize_catchup(c,db,args.missed_date,args.expected_sha256,candidate)
  if args.mode!='catchup' and 0<wait<=16*60:
   staged=publisher.stage_next()

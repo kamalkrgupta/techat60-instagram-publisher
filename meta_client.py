@@ -30,6 +30,13 @@ class MetaClient:
   r=self.request('POST',self.c.account_id+'/media',data={'media_type':'REELS','upload_type':'resumable','caption':caption,'share_to_feed':'true'})
   if not r.get('id') or not r.get('uri'):raise MetaError('Container response lacks id or upload URI.',uncertain=True)
   self.validate_upload_uri(r['uri']);return str(r['id']),r['uri']
+ def create_url(self,url,caption):
+  # Only a validated, already-authorized repository asset may reach this method.
+  u=urlsplit(url)
+  if u.scheme!='https' or u.hostname!='github.com' or '/releases/download/' not in u.path or u.username or u.password:raise MetaError('Invalid hosted-video URL.')
+  r=self.request('POST',self.c.account_id+'/media',data={'media_type':'REELS','video_url':url,'caption':caption,'share_to_feed':'true'})
+  if not r.get('id'):raise MetaError('URL container response lacks id.',uncertain=True)
+  return str(r['id'])
  @staticmethod
  def validate_upload_uri(uri):
   u=urlsplit(uri)
