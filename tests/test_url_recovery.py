@@ -22,4 +22,22 @@ class UrlRecoveryTests(Base):
   meta=MetaClient(self.config);meta.request=Mock(return_value={'id':'known'})
   url='https://github.com/o/r/releases/download/v/file.mp4';self.assertEqual(meta.create_url(url,'caption'),'known')
   data=meta.request.call_args.kwargs['data'];self.assertEqual(data['video_url'],url);self.assertNotIn('upload_type',data)
+class HostedSourceGuards(unittest.TestCase):
+ def test_only_this_repository_and_exact_hash_are_accepted(self):
+  from cloud_runner import validated_source_url
+  from github_store import CloudStateError
+  entry={'sha256':'known','download_url':'https://github.com/owner/repo/releases/download/v/file.mp4'}
+  self.assertEqual(validated_source_url('owner/repo',entry,'known',[]),entry['download_url'])
+  with self.assertRaises(CloudStateError):validated_source_url('other/repo',entry,'known',[])
+  with self.assertRaises(CloudStateError):validated_source_url('owner/repo',entry,'different',[])
+ def test_unresolved_direct_upload_cannot_be_replaced(self):
+  from cloud_runner import validated_source_url
+  from github_store import CloudStateError
+  entry={'sha256':'known','download_url':'https://github.com/owner/repo/releases/download/v/file.mp4'}
+  for status in ('UPLOAD_UNKNOWN','PUBLISHING','PUBLISH_UNKNOWN'):
+   with self.assertRaises(CloudStateError):validated_source_url('owner/repo',entry,'known',[{'status':status,'sha256':'known','upload_uri':None}])
+ def test_same_hosted_container_can_resume(self):
+  from cloud_runner import validated_source_url
+  entry={'sha256':'known','download_url':'https://github.com/owner/repo/releases/download/v/file.mp4'}
+  self.assertEqual(validated_source_url('owner/repo',entry,'known',[{'status':'PROCESSING','sha256':'known','upload_uri':None}]),entry['download_url'])
 if __name__=='__main__':unittest.main()

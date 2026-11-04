@@ -36,6 +36,14 @@ def download_video(entry,folder,repo,session=None):
  finally:temporary.unlink(missing_ok=True)
  return target
 
+def validated_source_url(repo,candidate,expected_sha256,pending):
+ if not candidate or candidate['sha256']!=expected_sha256:raise CloudStateError('Hosted source hash does not match the selected candidate.')
+ source_url=candidate['download_url'];u=urlsplit(source_url)
+ if u.scheme!='https' or u.hostname!='github.com' or not u.path.startswith('/'+repo+'/releases/download/') or u.username or u.password:raise CloudStateError('Hosted source must belong to this repository.')
+ for job in pending:
+  if job['status'] not in ('PROCESSING','READY') or job.get('upload_uri') or job['sha256']!=expected_sha256:raise CloudStateError('Reconcile an existing direct upload before switching transports.')
+ return source_url
+
 def authorize_catchup(c,db,missed_date,expected_sha256,candidate):
  """Explicit manual recovery only; retain real publication date and daily/hash guards."""
  if os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('Catch-up requires a manual workflow dispatch.')
@@ -110,13 +118,14 @@ def main():
  # Start early and wait toward 19:00, allowing scheduler/setup overhead; no exact-time guarantee.
  now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0);wait=(target-now).total_seconds()
  source_url=None
- if args.transport=='url':
-  if args.mode!='catchup' or os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('URL recovery requires an explicitly authorized manual catch-up.')
-  if not candidate or candidate['sha256']!=args.expected_sha256:raise CloudStateError('URL recovery hash does not match the next candidate.')
-  source_url=candidate['download_url'];u=urlsplit(source_url)
-  if u.scheme!='https' or u.hostname!='github.com' or not u.path.startswith('/'+repo+'/releases/download/') or u.username or u.password:raise CloudStateError('URL recovery asset must belong to this repository.')
-  for job in db.pending():
-   if job['status'] not in ('PROCESSING','READY') or job.get('upload_uri') or job['sha256']!=args.expected_sha256:raise CloudStateError('Reconcile the existing direct upload before URL recovery.')
+ # Binary transport returned ProcessingFailedError in a live cloud run. Use the
+ # successfully exercised hosted-source route for routine cloud publication.
+ use_hosted=args.mode=='publish' or args.transport=='url'
+ if use_hosted and candidate:
+  if args.mode not in ('publish','catchup'):raise CloudStateError('Hosted input is only available to the guarded publisher.')
+  if args.mode=='catchup' and os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('Catch-up requires manual authorization.')
+  expected=candidate['sha256'] if args.mode=='publish' else args.expected_sha256
+  source_url=validated_source_url(repo,candidate,expected,db.pending())
  publisher=Publisher(c,db,source_url=source_url)
  if args.mode=='catchup':authorize_catchup(c,db,args.missed_date,args.expected_sha256,candidate)
  if args.mode!='catchup' and 0<wait<=16*60:
