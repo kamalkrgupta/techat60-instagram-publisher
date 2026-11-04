@@ -1,11 +1,12 @@
 name: Instagram daily publisher
 on:
   schedule:
-    # Explicit UTC: 13:30 UTC = 19:00 Asia/Kolkata (IST has no DST).
-    # Prepare at 18:45 IST; retry safely through 22:00 IST.
-    - cron: '15,30,45 13 * * *'
-    - cron: '0,15,30,45 14-15 * * *'
-    - cron: '0,15,30 16 * * *'
+    # Explicit India timezone; keep retries away from the top of the hour.
+    # Private preparation at 18:45; guarded publication from 19:00 to 22:00.
+    - cron: '45 18 * * *'
+      timezone: 'Asia/Kolkata'
+    - cron: '3,18,33,48 19-21 * * *'
+      timezone: 'Asia/Kolkata'
   workflow_dispatch:
     inputs:
       mode:
