@@ -240,6 +240,22 @@
       "sha256": "21ee2ebcf4b4dd9b0a85989f67cab7690c8c28c2133fb7460345858c412f969d",
       "bytes": 4625374,
       "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/030-21ee2ebcf4b4dd9b0a85989f67cab7690c8c28c2133fb7460345858c412f969d.mp4"
+    },
+    {
+      "number": 31,
+      "filename": "031 - CSS Position Property Web Development in 60 Seconds - ss5_POi4tYk.mp4",
+      "topic": "CSS Position Property",
+      "sha256": "54edca5d8c61507bb0ebcdbddbcbfdef037ec55ee26ac2e86a95b983ae8b6dc7",
+      "bytes": 4588842,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/031-54edca5d8c61507bb0ebcdbddbcbfdef037ec55ee26ac2e86a95b983ae8b6dc7.mp4"
+    },
+    {
+      "number": 32,
+      "filename": "032 - CSS Hover Effects Web Development in 60 Seconds - 8luErDb4IOM.mp4",
+      "topic": "CSS Hover Effects",
+      "sha256": "1010c3faa7be20825f8071269ca4ae15c33c34727296070e55cb6e1aa258b001",
+      "bytes": 4630819,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/032-1010c3faa7be20825f8071269ca4ae15c33c34727296070e55cb6e1aa258b001.mp4"
     }
   ]
 }
