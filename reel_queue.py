@@ -6,6 +6,7 @@ from config import secure_json
 from database import ACTIVE,stamp
 from video_source import scan
 from caption_generator import CaptionGenerator
+from scheduled_reel import planned_caption
 
 def first_slot(c,db):
  now=c.now();h,m=map(int,c.publish_time.split(':'));target=now.replace(hour=h,minute=m,second=0,microsecond=0)
@@ -16,10 +17,14 @@ def sync_queue(c,db):
  videos=scan(c.video_folder);now=stamp();publications={r['sha256']:r for r in db.history() if r.get('sha256')};jobs={r['sha256']:r for r in db.jobs() if r['status'] in ACTIVE};hold=any(r['status'] in ('PUBLISHING','PUBLISH_UNKNOWN','VERIFY_PENDING') for r in jobs.values())
  db.conn.execute('''CREATE TABLE IF NOT EXISTS reel_queue(sha256 TEXT PRIMARY KEY,number INTEGER NOT NULL,filename TEXT NOT NULL,topic TEXT NOT NULL,caption TEXT NOT NULL,status TEXT NOT NULL,available INTEGER NOT NULL DEFAULT 1,planned_at TEXT,media_id TEXT,permalink TEXT,added_at TEXT NOT NULL,updated_at TEXT NOT NULL)''')
  captioner=CaptionGenerator(c)
+ class FreeCaptioner:
+  def generate(self,video,recent=()):return captioner.generate(video,recent,allow_api=False)
+  def normalize(self,text,video):return captioner.normalize(text,video)
+ preview_captioner=FreeCaptioner()
  with db.conn:
   db.conn.execute('UPDATE reel_queue SET available=0')
   for v in videos:
-   caption,_=captioner.generate(v,allow_api=False)
+   caption,_=planned_caption(c,db,v,preview_captioner,strict=False) if db.setting('scheduled_reel:'+c.now().date().isoformat()) else captioner.generate(v,allow_api=False)
    published=publications.get(v.sha256);state='PUBLISHED' if published else 'IN_PROGRESS' if v.sha256 in jobs else 'QUEUED'
    if not published and (hold or v.number==1 and db.setting('seed_match')=='pending'):state='ON_HOLD'
    db.conn.execute('''INSERT INTO reel_queue(sha256,number,filename,topic,caption,status,available,media_id,permalink,added_at,updated_at) VALUES(?,?,?,?,?,?,1,?,?,?,?) ON CONFLICT(sha256) DO UPDATE SET number=excluded.number,filename=excluded.filename,topic=excluded.topic,caption=excluded.caption,status=excluded.status,available=1,media_id=excluded.media_id,permalink=excluded.permalink,updated_at=excluded.updated_at''',(v.sha256,v.number,v.path.name,v.topic,caption,state,published.get('media_id') if published else None,published.get('permalink') if published else None,now,now))

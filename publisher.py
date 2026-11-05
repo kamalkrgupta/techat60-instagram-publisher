@@ -10,6 +10,7 @@ from video_source import scan,select,validate_video,prepare_upload,Video,sha
 from meta_client import MetaClient,MetaError
 from caption_generator import CaptionGenerator
 from reel_queue import sync_queue
+from scheduled_reel import planned_caption
 class Publisher:
  def __init__(self,c,db,meta=None,captions=None,source_url=None):self.c=c;self.db=db;self.meta=meta or MetaClient(c);self.captions=captions or CaptionGenerator(c);self.source_url=source_url
  def reconcile(self,job):
@@ -109,7 +110,7 @@ class Publisher:
   if not job:
    video=select(scan(self.c.video_folder),self.db)
    if not video:return {'status':'QUEUE_COMPLETE'}
-   validate_video(video);caption,_=self.captions.generate(video,[r['caption'] for r in self.db.history() if r.get('caption')])
+   validate_video(video);caption,_=planned_caption(self.c,self.db,video,self.captions,[r['caption'] for r in self.db.history() if r.get('caption')])
    if self.meta.find_caption(caption):raise RuntimeError('Exact caption already exists; manual reconciliation required.')
    job=self.db.reserve(day,video,caption)
   self.meta.check_limit()
@@ -139,7 +140,7 @@ class Publisher:
    return self.resume(old)
   validate_video(video)
   recent=[r['caption'] for r in self.db.history() if r.get('caption')]
-  caption,origin=self.captions.generate(video,recent)
+  caption,origin=planned_caption(self.c,self.db,video,self.captions,recent)
   if self.meta.find_caption(caption):raise RuntimeError('An exact-caption Reel already exists; review rather than posting a duplicate.')
   job=self.db.reserve(day,video,caption);logging.info('Reserved day=%s filename=%s caption_source=%s',day,video.path.name,origin)
   return self.resume(job)

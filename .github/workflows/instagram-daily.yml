@@ -12,8 +12,12 @@ on:
       mode:
         description: 'Read-only check or approved daily publication (daily/time guards apply)'
         type: choice
-        options: [check, publish, catchup, special]
+        options: [check, publish, catchup, special, schedule]
         default: check
+      publish_date:
+        description: 'Manual same-day schedule: YYYY-MM-DD in Asia/Kolkata'
+        type: string
+        default: ''
       missed_date:
         description: 'Explicit catch-up only: missed local date YYYY-MM-DD'
         type: string
@@ -35,7 +39,7 @@ concurrency:
 jobs:
   instagram:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: ${{ inputs.mode == 'schedule' && 360 || 35 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,6 +67,7 @@ jobs:
           PUBLISH_BACKEND: github-actions
           EVENT_MODE: ${{ github.event_name == 'schedule' && 'publish' || inputs.mode }}
           UPLOAD_TRANSPORT: ${{ inputs.upload_transport || 'direct' }}
+          PUBLISH_DATE: ${{ inputs.publish_date }}
           MISSED_DATE: ${{ inputs.missed_date }}
           EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
           SPECIAL_PROJECT_ROOT: ${{ github.workspace }}/.special-runtime/source
@@ -71,5 +76,5 @@ jobs:
           if [ "$EVENT_MODE" = "special" ]; then
             python -u publish_ai_special.py
           else
-            python -u cloud_runner.py --mode "$EVENT_MODE" --missed-date "$MISSED_DATE" --expected-sha256 "$EXPECTED_SHA256" --transport "$UPLOAD_TRANSPORT"
+            python -u cloud_runner.py --mode "$EVENT_MODE" --publish-date "$PUBLISH_DATE" --missed-date "$MISSED_DATE" --expected-sha256 "$EXPECTED_SHA256" --transport "$UPLOAD_TRANSPORT"
           fi

@@ -10,6 +10,7 @@ from github_store import GitHub,StateStore,CloudStateError
 from publisher import Publisher,check,Redactor
 from video_source import sha,scan,select,validate_video
 from caption_generator import CaptionGenerator
+from scheduled_reel import schedule_target,wait_for_preparation
 
 def download_video(entry,folder,repo,session=None):
  name=Path(entry['filename']).name
@@ -76,7 +77,7 @@ def assess_result(c,db,result,has_candidate,event):
  return result,0
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish','catchup'],default='check');p.add_argument('--missed-date',default='');p.add_argument('--expected-sha256',default='');p.add_argument('--transport',choices=['direct','url'],default='direct');args=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--mode',choices=['check','publish','catchup','schedule'],default='check');p.add_argument('--publish-date',default='');p.add_argument('--missed-date',default='');p.add_argument('--expected-sha256',default='');p.add_argument('--transport',choices=['direct','url'],default='direct');args=p.parse_args()
  if os.environ.get('GITHUB_ACTIONS')!='true':raise CloudStateError('Cloud runner is only enabled inside GitHub Actions.')
  repo=os.environ['GITHUB_REPOSITORY'];token=os.environ['GITHUB_TOKEN'];key=base64.b64decode(os.environ['INSTAGRAM_STATE_KEY'],validate=True)
  if len(key)!=32:raise CloudStateError('Invalid state encryption key.')
@@ -120,12 +121,19 @@ def main():
  source_url=None
  # Binary transport returned ProcessingFailedError in a live cloud run. Use the
  # successfully exercised hosted-source route for routine cloud publication.
- use_hosted=args.mode=='publish' or args.transport=='url'
+ use_hosted=args.mode in ('publish','schedule') or args.transport=='url'
  if use_hosted and candidate:
-  if args.mode not in ('publish','catchup'):raise CloudStateError('Hosted input is only available to the guarded publisher.')
+  if args.mode not in ('publish','schedule','catchup'):raise CloudStateError('Hosted input is only available to the guarded publisher.')
   if args.mode=='catchup' and os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('Catch-up requires manual authorization.')
   expected=candidate['sha256'] if args.mode=='publish' else args.expected_sha256
   source_url=validated_source_url(repo,candidate,expected,db.pending())
+ if args.mode=='schedule':
+  target=schedule_target(c,db,args.publish_date,args.expected_sha256,candidate)
+  db.set('scheduled_waiter',json.dumps({'status':'WAITING','publishAt':target.isoformat(),'sha256':args.expected_sha256,'run_id':os.environ.get('GITHUB_RUN_ID')}))
+  print(json.dumps({'status':'WAITING_FOR_19_00_IST','publishAt':target.isoformat(),'sha256':args.expected_sha256}),flush=True)
+  wait_for_preparation(c,target)
+  wait=(target-c.now()).total_seconds()
+  db.set('scheduled_waiter',json.dumps({'status':'PREPARING','publishAt':target.isoformat(),'sha256':args.expected_sha256,'run_id':os.environ.get('GITHUB_RUN_ID')}))
  publisher=Publisher(c,db,source_url=source_url)
  if args.mode=='catchup':authorize_catchup(c,db,args.missed_date,args.expected_sha256,candidate)
  if args.mode!='catchup' and 0<wait<=16*60:
