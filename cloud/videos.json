@@ -296,6 +296,22 @@
       "sha256": "e87ac60dcc382b9462064984d3e909c21c5d459dfb7d61e040767eaf60cd5a28",
       "bytes": 4544931,
       "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/037-e87ac60dcc382b9462064984d3e909c21c5d459dfb7d61e040767eaf60cd5a28.mp4"
+    },
+    {
+      "number": 38,
+      "filename": "038 - JavaScript Variables Web Development in 60 Seconds - N5xsNZmpPBo.mp4",
+      "topic": "JavaScript Variables",
+      "sha256": "b4c59b44b6a785dd78b12833cb73f4f27bb5d4d06cc77ec66761be213fb990c1",
+      "bytes": 4602324,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/038-b4c59b44b6a785dd78b12833cb73f4f27bb5d4d06cc77ec66761be213fb990c1.mp4"
+    },
+    {
+      "number": 39,
+      "filename": "039 - JavaScript Data Types Web Development in 60 Seconds - BmFsB-MoDlU.mp4",
+      "topic": "JavaScript Data Types",
+      "sha256": "973983c1481ac80b2bff51daa347407cb9dda9929f83dad91675237dfa90ec43",
+      "bytes": 4490709,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/039-973983c1481ac80b2bff51daa347407cb9dda9929f83dad91675237dfa90ec43.mp4"
     }
   ]
 }
