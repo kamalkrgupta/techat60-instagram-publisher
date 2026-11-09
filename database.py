@@ -39,7 +39,8 @@ class Database:
    self.conn.execute("UPDATE settings SET value=? WHERE key='seed_match'",(decision,))
   self.notify()
  def published_hashes(self):return {r[0] for r in self.conn.execute('SELECT sha256 FROM publications WHERE sha256 IS NOT NULL')}
- def used_day(self,day):return self.conn.execute('SELECT 1 FROM publications WHERE local_day=? LIMIT 1',(day,)).fetchone() is not None
+ def catchup_media_ids(self):return {r[0] for r in self.conn.execute("SELECT media_id FROM publications WHERE source='Explicit missed-slot catch-up approved 2026-11-09'")}
+ def used_day(self,day):return self.conn.execute("SELECT 1 FROM publications WHERE local_day=? AND source!='Explicit missed-slot catch-up approved 2026-11-09' LIMIT 1",(day,)).fetchone() is not None
  def reserve(self,day,video,caption):
   self.conn.execute('BEGIN IMMEDIATE')
   try:

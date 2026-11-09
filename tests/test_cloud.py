@@ -118,7 +118,7 @@ class CloudTests(Base):
   self.assertEqual(self.db.job(regular['id'])['status'],'READY');self.assertIsNone(self.db.job(job['id']));special.conn.close()
  def test_special_uncertain_publication_recovers_without_republishing(self):
   from publish_ai_special import SpecialLedger
-  special=SpecialLedger(self.root/'data/special-recovery.db');j=special.reserve_special(self.now.date().isoformat(),self.video,'special caption');j=special.update(j['id'],'PUBLISH_UNKNOWN',container_id='c');m=self.fake_meta();m.container.return_value={'status_code':'PUBLISHED'};m.find_caption.return_value=[{'id':'special-found','timestamp':self.now.isoformat()}]
+  special=SpecialLedger(self.root/'data/special-recovery.db');j=special.reserve_special(self.now.date().isoformat(),self.video,'special caption');j=special.update(j['id'],'PUBLISH_UNKNOWN',container_id='c');m=self.fake_meta();m.container.return_value={'status_code':'PUBLISHED'};m.find_caption.return_value=[{'id':'special-found','timestamp':j['created_at']}]
   result=Publisher(self.config,special,m).reconcile(j);self.assertEqual(result['status'],'PUBLISHED');m.publish.assert_not_called();self.assertIn(self.video.sha256,special.published_hashes());special.conn.close()
  def test_special_rebinds_verified_source_when_moving_to_cloud(self):
   from publish_ai_special import SpecialLedger

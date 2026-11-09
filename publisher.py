@@ -49,7 +49,7 @@ class Publisher:
   if job['status']!='READY':raise RuntimeError('Unexpected pending state; operator review required.')
   # Recheck the local day and remote account immediately before public mutation.
   if self.c.now().date().isoformat()!=job['local_day'] or not self.c.due():return job
-  if self.db.used_day(today) or self.meta.today_reels(today):return {'status':'ALREADY_PUBLISHED_TODAY'}
+  if self.db.used_day(today) or [r for r in self.meta.today_reels(today) if str(r['id']) not in self.db.catchup_media_ids()]:return {'status':'ALREADY_PUBLISHED_TODAY'}
   self.meta.check_limit()
   if self.meta.container(job['container_id']).get('status_code')!='FINISHED':return self.reconcile(job)
   job=self.db.update(job['id'],'PUBLISHING',publish_attempt_at=stamp())
@@ -101,7 +101,7 @@ class Publisher:
   auth=self.meta.check_auth()
   if not auth.get('expiration_verified'):raise RuntimeError('Token identity/expiration must be verified before staging.')
   self.db.verify_seed(self.meta.media(SEED_ID))
-  if self.meta.today_reels(day):return {'status':'ALREADY_PUBLISHED_TODAY_ON_META'}
+  if [r for r in self.meta.today_reels(day) if str(r['id']) not in self.db.catchup_media_ids()]:return {'status':'ALREADY_PUBLISHED_TODAY_ON_META'}
   pending=self.db.pending()
   for existing in pending:
    if existing['status'] in ('PUBLISHING','PUBLISH_UNKNOWN','VERIFY_PENDING'):return self.reconcile(existing)
@@ -131,7 +131,7 @@ class Publisher:
   day=self.c.now().date().isoformat()
   if self.db.used_day(day):return {'status':'ALREADY_PUBLISHED_TODAY'}
   if not self.c.due():return {'status':'OUTSIDE_PUBLISH_WINDOW'}
-  if self.meta.today_reels(day):return {'status':'ALREADY_PUBLISHED_TODAY_ON_META'}
+  if [r for r in self.meta.today_reels(day) if str(r['id']) not in self.db.catchup_media_ids()]:return {'status':'ALREADY_PUBLISHED_TODAY_ON_META'}
   videos=scan(self.c.video_folder);video=select(videos,self.db)
   if video is None:return {'status':'QUEUE_COMPLETE'}
   old=self.db.day_job(day)

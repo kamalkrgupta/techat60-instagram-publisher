@@ -52,7 +52,7 @@ class SpecialLedger(Database):
   if str(media.get('id'))!=str(job['media_id']) or not media.get('timestamp') or urlsplit(media.get('permalink','')).hostname not in ('www.instagram.com','instagram.com'):raise RuntimeError('Special publication metadata not confirmed.')
   at=datetime.fromisoformat(media['timestamp'].replace('Z','+00:00'))
   with self.conn:
-   self.conn.execute('INSERT OR IGNORE INTO publications VALUES(?,?,?,?,?,?,?,?,?)',(media['id'],job['sha256'],Path(job['filename']).name,job['caption'],media['permalink'],at.astimezone(zone).date().isoformat(),at.isoformat(),1,'Explicitly user-approved extra Reel; separate from daily queue'))
+   self.conn.execute('INSERT OR IGNORE INTO publications VALUES(?,?,?,?,?,?,?,?,?)',(media['id'],job['sha256'],Path(job['filename']).name,job['caption'],media['permalink'],at.astimezone(zone).date().isoformat(),at.isoformat(),1,getattr(self,'publication_source','Explicitly user-approved extra Reel; separate from daily queue')))
    row=self.conn.execute('SELECT sha256 FROM publications WHERE media_id=?',(media['id'],)).fetchone()
    if not row or row['sha256']!=job['sha256']:raise RuntimeError('Special publication identity conflict.')
    self.conn.execute("UPDATE special_jobs SET status='PUBLISHED',permalink=?,published_at=?,updated_at=?,error=NULL WHERE id=?",(media['permalink'],at.isoformat(),stamp(),job['id']))

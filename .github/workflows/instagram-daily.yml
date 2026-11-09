@@ -3,16 +3,16 @@ on:
   schedule:
     # Explicit India timezone; keep retries away from the top of the hour.
     # Private preparation at 18:45; guarded publication from 19:00 to 22:00.
-    - cron: '45 18 * * *'
-      timezone: 'Asia/Kolkata'
-    - cron: '3,18,33,48 19-21 * * *'
-      timezone: 'Asia/Kolkata'
+    - cron: '15 13 * * *'
+    - cron: '33,48 13 * * *'
+    - cron: '3,18,33,48 14-15 * * *'
+    - cron: '3,18 16 * * *'
   workflow_dispatch:
     inputs:
       mode:
         description: 'Read-only check or approved daily publication (daily/time guards apply)'
         type: choice
-        options: [check, publish, catchup, special, schedule]
+        options: [check, publish, catchup, special, schedule, backlog_20261109]
         default: check
       publish_date:
         description: 'Manual same-day schedule: YYYY-MM-DD in Asia/Kolkata'
@@ -73,7 +73,9 @@ jobs:
           SPECIAL_PROJECT_ROOT: ${{ github.workspace }}/.special-runtime/source
           SPECIAL_APPROVED_SHA: ${{ inputs.expected_sha256 }}
         run: |
-          if [ "$EVENT_MODE" = "special" ]; then
+          if [ "$EVENT_MODE" = "backlog_20261109" ]; then
+            python -u recover_november_backlog.py
+          elif [ "$EVENT_MODE" = "special" ]; then
             python -u publish_ai_special.py
           else
             python -u cloud_runner.py --mode "$EVENT_MODE" --publish-date "$PUBLISH_DATE" --missed-date "$MISSED_DATE" --expected-sha256 "$EXPECTED_SHA256" --transport "$UPLOAD_TRANSPORT"
