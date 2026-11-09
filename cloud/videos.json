@@ -328,6 +328,22 @@
       "sha256": "b2abed7ff50eef0fdf348bf7191db29eb9849683515a2dd0a3e2484cae13021e",
       "bytes": 4665037,
       "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/041-b2abed7ff50eef0fdf348bf7191db29eb9849683515a2dd0a3e2484cae13021e.mp4"
+    },
+    {
+      "number": 42,
+      "filename": "042 - JavaScript If-Else Web Development in 60 Seconds - vgVn3gu5lhI.mp4",
+      "topic": "JavaScript If-Else",
+      "sha256": "04b52a78bc7f9808335389c1d43336187097d90408d9c6041c3eb51bdf060ef3",
+      "bytes": 4755355,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/042-04b52a78bc7f9808335389c1d43336187097d90408d9c6041c3eb51bdf060ef3.mp4"
+    },
+    {
+      "number": 43,
+      "filename": "043 - JavaScript Loops Web Development in 60 Seconds - _3T2NZM_2Ac.mp4",
+      "topic": "JavaScript Loops",
+      "sha256": "4d855c3830f7c4d993cf7c0b450f3c4c1321a6f0fbacc2391b104996a67dd42c",
+      "bytes": 4611921,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/043-4d855c3830f7c4d993cf7c0b450f3c4c1321a6f0fbacc2391b104996a67dd42c.mp4"
     }
   ]
 }
