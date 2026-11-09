@@ -11,7 +11,7 @@ from maintenance import write_env
 NAME='techat60-instagram-publisher'
 DESCRIPTION='Automated Instagram Reels publisher for TECH AT 60; free GitHub Actions'
 STATE_FILE=ROOT/'.github-deployment.json';KEY_FILE=ROOT/'.github-state-key';GH=ROOT/'.tools/gh'
-PUBLIC_FILES=['scheduled_reel.py','tests/test_scheduled_reel.py','tests/test_url_recovery.py','cloud_watchdog.py','tests/test_watchdog.py','publish_ai_special.py','cloud/special-ai-friend.json','github_deploy.py','maintenance.py','config.py','database.py','meta_client.py','caption_generator.py','video_source.py','publisher.py','reel_queue.py','scheduler.py','github_store.py','cloud_runner.py','requirements-cloud.txt','.github/workflows/instagram-daily.yml','tests/test_system.py','tests/test_queue.py','tests/test_cloud.py']
+PUBLIC_FILES=['recover_november_backlog.py','tests/test_backlog_recovery.py','scheduled_reel.py','tests/test_scheduled_reel.py','tests/test_url_recovery.py','cloud_watchdog.py','tests/test_watchdog.py','publish_ai_special.py','cloud/special-ai-friend.json','github_deploy.py','maintenance.py','config.py','database.py','meta_client.py','caption_generator.py','video_source.py','publisher.py','reel_queue.py','scheduler.py','github_store.py','cloud_runner.py','requirements-cloud.txt','.github/workflows/instagram-daily.yml','tests/test_system.py','tests/test_queue.py','tests/test_cloud.py']
 
 def command(args,input=None,check=True):
  r=subprocess.run(list(map(str,args)),input=input,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,cwd=ROOT)
