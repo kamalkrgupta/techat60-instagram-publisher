@@ -25,6 +25,7 @@ def main():
  if c.now().date().isoformat()!='2026-11-09':raise CloudStateError('This one-time recovery is authorized only for November 9.')
  store=StateStore(GitHub(repo,os.environ['GITHUB_TOKEN']),base64.b64decode(os.environ['INSTAGRAM_STATE_KEY'],validate=True))
  path=root/'data/recovery.sqlite3';store.load(path);db=SpecialLedger(path);db.publication_source=SOURCE;db.on_commit=lambda:store.persist(db)
+ if db.setting('seed_match')!='same':raise CloudStateError('Verified original history is required.')
  if db.pending():raise CloudStateError('Daily jobs require reconciliation before recovery.')
  targets={p[2] for p in PLAN}
  unfinished=db.conn.execute("SELECT sha256 FROM special_jobs WHERE status NOT IN ('PUBLISHED','FAILED','EXPIRED')").fetchall()
@@ -59,6 +60,13 @@ def main():
     job=db.update(job['id'],'VERIFY_PENDING',media_id=ident);job=publisher.confirm_media(job)
   if job['status']!='PUBLISHED':raise CloudStateError('Publication not confirmed; stopping batch.')
   print(json.dumps({'status':'PUBLISHED','lesson':number,'missed_date':missed,'permalink':job['permalink'],'published_at':job['published_at']}),flush=True)
+ # Bind today's normal slot after the three confirmed catch-up publications.
+ entry=next(v for v in entries if v['number']==9)
+ video=Video(videos/entry['filename'],9,entry['topic'],entry['sha256'])
+ caption,_=CaptionGenerator(c).generate(video,allow_api=False)
+ target=c.now().replace(hour=19,minute=0,second=0,microsecond=0)
+ db.set('scheduled_reel:2026-11-09',json.dumps({'account_id':c.account_id,'sha256':entry['sha256'],'publishAt':target.isoformat(),'caption':caption}))
+ print(json.dumps({'status':'DAILY_SLOT_PLANNED','lesson':9,'publishAt':target.isoformat(),'sha256':entry['sha256']}),flush=True)
  db.conn.close()
 if __name__=='__main__':
  try:main()
