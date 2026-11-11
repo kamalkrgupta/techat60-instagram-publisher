@@ -344,6 +344,22 @@
       "sha256": "4d855c3830f7c4d993cf7c0b450f3c4c1321a6f0fbacc2391b104996a67dd42c",
       "bytes": 4611921,
       "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/043-4d855c3830f7c4d993cf7c0b450f3c4c1321a6f0fbacc2391b104996a67dd42c.mp4"
+    },
+    {
+      "number": 44,
+      "filename": "044 - JavaScript Arrays Web Development in 60 Seconds - B8q7YYhyiWs.mp4",
+      "topic": "JavaScript Arrays",
+      "sha256": "cdfe484bd286009305983d53e589bbf62eea0b18af66c5fd5da8ed57805ea8e7",
+      "bytes": 4677225,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/044-cdfe484bd286009305983d53e589bbf62eea0b18af66c5fd5da8ed57805ea8e7.mp4"
+    },
+    {
+      "number": 45,
+      "filename": "045 - JavaScript Objects Web Development in 60 Seconds - d1PadSj4VSg.mp4",
+      "topic": "JavaScript Objects",
+      "sha256": "ef402812d68ab503db10db39e2b027b690a704cd2656151b5b7081b2a8671417",
+      "bytes": 4512602,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/045-ef402812d68ab503db10db39e2b027b690a704cd2656151b5b7081b2a8671417.mp4"
     }
   ]
 }
