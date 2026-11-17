@@ -1,12 +1,12 @@
 name: Instagram daily publisher
 on:
   schedule:
-    # Explicit India timezone; keep retries away from the top of the hour.
-    # Private preparation at 18:45; guarded publication from 19:00 to 22:00.
-    - cron: '15 13 * * *'
-    - cron: '33,48 13 * * *'
-    - cron: '3,18,33,48 14-15 * * *'
-    - cron: '3,18 16 * * *'
+    # Start a waiting worker early; private preparation remains at 18:45.
+    - cron: '31 13,15,17 * * *'
+      timezone: Asia/Kolkata
+    # Off-hour retries still obey the one-Reel/day and 19:00-22:00 guards.
+    - cron: '3,33 19-21 * * *'
+      timezone: Asia/Kolkata
   workflow_dispatch:
     inputs:
       mode:
@@ -39,7 +39,7 @@ concurrency:
 jobs:
   instagram:
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.mode == 'schedule' && 360 || 35 }}
+    timeout-minutes: ${{ inputs.mode == 'check' && 35 || 360 }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,6 +66,7 @@ jobs:
           OPENAI_API_KEY: ''
           PUBLISH_BACKEND: github-actions
           EVENT_MODE: ${{ github.event_name == 'schedule' && 'publish' || inputs.mode }}
+          TRIGGER_SCHEDULE: ${{ github.event.schedule }}
           UPLOAD_TRANSPORT: ${{ inputs.upload_transport || 'direct' }}
           PUBLISH_DATE: ${{ inputs.publish_date }}
           MISSED_DATE: ${{ inputs.missed_date }}

@@ -14,7 +14,7 @@ class WatchdogTests(unittest.TestCase):
   self.assertEqual(self.execute(),'WATCHDOG_DISPATCHED')
   self.api.request.assert_called_with('POST','/actions/workflows/instagram-daily.yml/dispatches',{'ref':'main','inputs':{'mode':'publish'}})
  def test_outside_window_does_not_dispatch(self):
-  for hour,minute in [(18,44),(22,1),(8,0)]:
+  for hour,minute in [(13,29),(22,1),(8,0)]:
    self.c.now.return_value=self.c.now.return_value.replace(hour=hour,minute=minute);self.assertEqual(self.execute(),'WATCHDOG_OUTSIDE_WINDOW')
   self.api.request.assert_not_called()
  def test_published_day_and_empty_queue_do_not_dispatch(self):
@@ -29,3 +29,19 @@ class WatchdogTests(unittest.TestCase):
  def test_local_publishing_backend_cannot_dispatch(self):
   self.c.publish_backend='mac';self.assertEqual(self.execute(),'WATCHDOG_INACTIVE');self.api.request.assert_not_called()
 if __name__=='__main__':unittest.main()
+
+class AfternoonWatchdogTests(unittest.TestCase):
+ setUp=WatchdogTests.setUp
+ execute=WatchdogTests.execute
+ def test_afternoon_dispatch_can_acquire_a_worker_before_delayed_cron(self):
+  self.c.now.return_value=self.c.now.return_value.replace(hour=13,minute=30)
+  self.assertEqual(self.execute(),'WATCHDOG_DISPATCHED')
+
+ def test_stale_queued_schedule_does_not_block_backup_forever(self):
+  self.api.request.return_value={'workflow_runs':[{'status':'queued','created_at':'2026-10-30T13:00:00Z'}]}
+  self.assertEqual(self.execute(),'WATCHDOG_DISPATCHED')
+  self.assertEqual(self.api.request.call_count,2)
+ def test_recent_queued_schedule_still_blocks_backup(self):
+  self.api.request.return_value={'workflow_runs':[{'status':'queued','created_at':'2026-11-04T13:31:00Z'}]}
+  self.assertEqual(self.execute(),'WATCHDOG_RUN_ACTIVE')
+  self.assertEqual(self.api.request.call_count,1)

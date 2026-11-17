@@ -31,3 +31,17 @@ def wait_for_preparation(c,target,sleep=time.sleep):
  while (target-c.now()).total_seconds()>15*60:
   sleep(min(45,(target-c.now()).total_seconds()-15*60))
  if c.now().date()!=target.date() or c.now()>target+timedelta(minutes=c.grace_minutes):raise CloudStateError('The requested scheduled window was missed.')
+
+def wait_for_daily_slot(c,db,candidate,preflight,sleep=time.sleep):
+ """Acquire an afternoon runner; do not create media before private preparation."""
+ now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0)
+ wait=(target-now).total_seconds()
+ if not candidate or db.used_day(now.date().isoformat()) or not 0<wait<=5.5*3600:return False
+ report=preflight()
+ if not report.get('meta',{}).get('valid') or not report.get('meta',{}).get('expiration_verified') or report.get('selection_hold'):
+  raise CloudStateError('Daily waiter preflight failed; inspect the read-only account/source check.')
+ db.set('scheduled_waiter',json.dumps({'status':'WAITING','publishAt':target.isoformat(),'sha256':candidate['sha256'],'run_id':os.environ.get('GITHUB_RUN_ID'),'kind':'daily'}))
+ print(json.dumps({'status':'WAITING_FOR_19_00_IST','publishAt':target.isoformat(),'private_preparation_at':(target-timedelta(minutes=15)).isoformat(),'meta_mutations':0}),flush=True)
+ wait_for_preparation(c,target,sleep=sleep)
+ db.set('scheduled_waiter',json.dumps({'status':'PREPARING','publishAt':target.isoformat(),'sha256':candidate['sha256'],'run_id':os.environ.get('GITHUB_RUN_ID'),'kind':'daily'}))
+ return True

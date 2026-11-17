@@ -10,7 +10,7 @@ from github_store import GitHub,StateStore,CloudStateError
 from publisher import Publisher,check,Redactor
 from video_source import sha,scan,select,validate_video
 from caption_generator import CaptionGenerator
-from scheduled_reel import schedule_target,wait_for_preparation
+from scheduled_reel import schedule_target,wait_for_preparation,wait_for_daily_slot
 
 def download_video(entry,folder,repo,session=None):
  name=Path(entry['filename']).name
@@ -116,7 +116,9 @@ def main():
  # Every critical ledger commit is encrypted and persisted BEFORE control returns to Meta calls.
  db.on_commit=lambda:store.persist(db)
  store.persist(db)
- # Start early and wait toward 19:00, allowing scheduler/setup overhead; no exact-time guarantee.
+ # Reserve a runner hours before the slot; delayed evening cron is a backup.
+ if args.mode=='publish':wait_for_daily_slot(c,db,candidate,lambda:check(c,db))
+ # Refresh the clock after waiting; normal publication guards remain intact.
  now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0);wait=(target-now).total_seconds()
  source_url=None
  # Binary transport returned ProcessingFailedError in a live cloud run. Use the
