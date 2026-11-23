@@ -127,6 +127,7 @@ class Publisher:
   for job in pending:
    # Recovery is prioritized over selecting any new video, even on a new day.
    result=self.resume(job)
+   if result.get('status')=='PUBLISHED' and result['local_day']==self.c.now().date().isoformat():return result
    if result.get('status') not in ('PUBLISHED','FAILED','EXPIRED'):return result
   day=self.c.now().date().isoformat()
   if self.db.used_day(day):return {'status':'ALREADY_PUBLISHED_TODAY'}

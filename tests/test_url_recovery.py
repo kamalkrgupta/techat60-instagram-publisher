@@ -9,6 +9,26 @@ class UrlRecoveryTests(Base):
   url='https://github.com/owner/repo/releases/download/reel-inputs/video.mp4'
   with patch('publisher.validate_video',return_value={}):result=Publisher(self.config,self.db,meta,source_url=url).prepare_private(job)
   self.assertEqual(result['status'],'READY');self.assertIsNone(result['upload_uri']);meta.upload.assert_not_called();meta.create.assert_not_called();meta.publish.assert_not_called();meta.create_url.assert_called_once_with(url,job['caption'])
+ def test_staged_reel_publishes_once_and_reports_permalink_at_8pm(self):
+  self.config.publish_time='20:00'
+  self.config.publish_backend='github-actions'
+  self.config.now.return_value=self.now.replace(minute=45)
+  meta=self.fake_meta()
+  meta.create_url.return_value='url-container'
+  meta.wait_finished.return_value='FINISHED'
+  permalink='https://www.instagram.com/reel/verified/'
+  seed=meta.media.side_effect
+  meta.media.side_effect=lambda ident: dict(id=ident,permalink=permalink,timestamp='2026-10-30T14:30:00+0000') if ident=='published-id' else seed(ident)
+  publisher=Publisher(self.config,self.db,meta,source_url='https://github.com/o/r/releases/download/v/file.mp4')
+  with patch.dict('os.environ',{'GITHUB_ACTIONS':'true'}), patch.object(self.config,'active',return_value=True), patch('publisher.validate_video'):
+   self.assertEqual(publisher.stage_next()['status'],'READY')
+   self.assertEqual(publisher.execute()['status'],'OUTSIDE_PUBLISH_WINDOW')
+   meta.publish.assert_not_called()
+   self.config.now.return_value=self.now.replace(hour=20)
+   result=publisher.execute()
+   self.assertEqual((result['status'],result['permalink']),('PUBLISHED',permalink))
+   self.assertEqual(publisher.execute()['status'],'ALREADY_PUBLISHED_TODAY')
+  meta.publish.assert_called_once_with('url-container')
  def test_lost_url_create_response_is_retained_as_uncertain(self):
   job=self.ready_job();job=self.db.update(job['id'],'FAILED');meta=self.fake_meta();meta.create_url.side_effect=MetaError('lost',uncertain=True)
   with patch('publisher.validate_video',return_value={}):
