@@ -36,6 +36,17 @@ class HostedSourceGuards(unittest.TestCase):
   entry={'sha256':'known','download_url':'https://github.com/owner/repo/releases/download/v/file.mp4'}
   for status in ('UPLOAD_UNKNOWN','PUBLISHING','PUBLISH_UNKNOWN'):
    with self.assertRaises(CloudStateError):validated_source_url('owner/repo',entry,'known',[{'status':status,'sha256':'known','upload_uri':None}])
+ def test_daily_hosted_creation_can_retry_without_bypassing_publication_guard(self):
+  from cloud_runner import validated_source_url
+  from github_store import CloudStateError
+  entry={'sha256':'known','download_url':'https://github.com/owner/repo/releases/download/v/file.mp4'}
+  for status in ('CREATING','CREATE_UNKNOWN'):
+   job={'status':status,'sha256':'known','upload_uri':None}
+   self.assertEqual(validated_source_url('owner/repo',entry,'known',[job],retry_creation=True),entry['download_url'])
+   with self.assertRaises(CloudStateError):validated_source_url('owner/repo',entry,'known',[job])
+  for status in ('PUBLISHING','PUBLISH_UNKNOWN'):
+   job={'status':status,'sha256':'known','upload_uri':None}
+   with self.assertRaises(CloudStateError):validated_source_url('owner/repo',entry,'known',[job],retry_creation=True)
  def test_same_hosted_container_can_resume(self):
   from cloud_runner import validated_source_url
   entry={'sha256':'known','download_url':'https://github.com/owner/repo/releases/download/v/file.mp4'}

@@ -37,12 +37,14 @@ def download_video(entry,folder,repo,session=None):
  finally:temporary.unlink(missing_ok=True)
  return target
 
-def validated_source_url(repo,candidate,expected_sha256,pending):
+def validated_source_url(repo,candidate,expected_sha256,pending,*,retry_creation=False):
  if not candidate or candidate['sha256']!=expected_sha256:raise CloudStateError('Hosted source hash does not match the selected candidate.')
  source_url=candidate['download_url'];u=urlsplit(source_url)
  if u.scheme!='https' or u.hostname!='github.com' or not u.path.startswith('/'+repo+'/releases/download/') or u.username or u.password:raise CloudStateError('Hosted source must belong to this repository.')
+ resumable={'PROCESSING','READY'}
+ if retry_creation:resumable.update(('CREATING','CREATE_UNKNOWN'))
  for job in pending:
-  if job['status'] not in ('PROCESSING','READY') or job.get('upload_uri') or job['sha256']!=expected_sha256:raise CloudStateError('Reconcile an existing direct upload before switching transports.')
+  if job['status'] not in resumable or job.get('upload_uri') or job['sha256']!=expected_sha256:raise CloudStateError('Reconcile an existing direct upload before switching transports.')
  return source_url
 
 def authorize_catchup(c,db,missed_date,expected_sha256,candidate):
@@ -131,6 +133,12 @@ def main():
  # Every critical ledger commit is encrypted and persisted BEFORE control returns to Meta calls.
  db.on_commit=lambda:store.persist(db)
  store.persist(db)
+ if args.mode=='publish' and pending and pending[0]['status'] in ('PUBLISHING','PUBLISH_UNKNOWN','VERIFY_PENDING'):
+  # A previous request may already be public. Confirm it before any transport selection.
+  result=Publisher(c,db).reconcile(pending[0])
+  store.persist(db)
+  print(json.dumps({k:v for k,v in result.items() if k!='upload_uri'},indent=2))
+  return 0 if result.get('status')=='PUBLISHED' else 2
  # Reserve a runner hours before the slot; delayed evening cron is a backup.
  if args.mode=='publish':wait_for_daily_slot(c,db,candidate,lambda:check(c,db))
  # Refresh the clock after waiting; normal publication guards remain intact.
@@ -143,7 +151,7 @@ def main():
   if args.mode not in ('publish','schedule','catchup'):raise CloudStateError('Hosted input is only available to the guarded publisher.')
   if args.mode=='catchup' and os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('Catch-up requires manual authorization.')
   expected=candidate['sha256'] if args.mode=='publish' else args.expected_sha256
-  source_url=validated_source_url(repo,candidate,expected,db.pending())
+  source_url=validated_source_url(repo,candidate,expected,db.pending(),retry_creation=args.mode=='publish')
  if args.mode=='schedule':
   target=schedule_target(c,db,args.publish_date,args.expected_sha256,candidate)
   db.set('scheduled_waiter',json.dumps({'status':'WAITING','publishAt':target.isoformat(),'sha256':args.expected_sha256,'run_id':os.environ.get('GITHUB_RUN_ID')}))
