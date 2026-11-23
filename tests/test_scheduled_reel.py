@@ -57,6 +57,13 @@ class DailyWaiterTests(Base):
  def test_afternoon_worker_waits_until_private_preparation_not_publication(self):
   self.assertTrue(self.execute());self.assertEqual(self.config.now(),self.target-timedelta(minutes=15));self.assertFalse(self.config.due())
   plan=json.loads(self.db.setting('scheduled_waiter'));self.assertEqual(plan['status'],'PREPARING');self.assertEqual(plan['sha256'],self.video.sha256);self.preflight.assert_called_once()
+ def test_8pm_worker_prepares_at_745_without_publishing_early(self):
+  self.config.publish_time='20:00'
+  self.config.now.return_value=self.now.replace(hour=14,minute=31)
+  self.assertTrue(self.execute())
+  self.assertEqual(self.config.now(),self.now.replace(hour=19,minute=45))
+  self.assertFalse(self.config.due())
+  self.assertTrue(self.config.due(self.now.replace(hour=20,minute=0)))
  def test_morning_evening_and_overnight_do_not_start_long_wait(self):
   for hour,minute in [(5,39),(13,29),(19,0),(21,0),(23,0)]:
    self.config.now.return_value=self.now.replace(hour=hour,minute=minute);self.assertFalse(self.execute());self.sleep.assert_not_called()

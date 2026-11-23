@@ -92,9 +92,9 @@ class Publisher:
    job=self.db.update(job['id'],'READY',error=None)
   return job
  def stage_next(self):
-  """Cloud-only bounded preflight before 19:00, so ready media can publish on time."""
+  """Cloud-only bounded preflight before the daily slot, so ready media can publish on time."""
   if self.c.publish_backend!='github-actions' or os.environ.get('GITHUB_ACTIONS')!='true' or not self.c.active():return {'status':'PRESTAGE_DISABLED'}
-  now=self.c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0)
+  now=self.c.now();target=self.c.daily_target(now)
   if not target-timedelta(minutes=16)<=now<target:return {'status':'OUTSIDE_PRESTAGE_WINDOW'}
   day=now.date().isoformat()
   if self.db.used_day(day):return {'status':'ALREADY_PUBLISHED_TODAY'}

@@ -1,6 +1,6 @@
 # TECH AT 60 — Instagram cloud publisher
 
-One Reel daily for `@tech_at_60`, targeting **19:00 Asia/Kolkata**. Free deterministic English captions, relevant hashtags and hash-based duplicate protection. The original HTML test Reel is already recorded and is not reposted.
+One Reel daily for `@tech_at_60`, targeting **20:00 Asia/Kolkata**. The daily worker uses the ordered, already-public TECH AT 60 Shorts in `cloud/trending-reels.json`. Each entry names the YouTube source and contains its Instagram caption. If the batch runs out, the worker reports `TRENDING_QUEUE_EMPTY`. The standard asset sync continues to maintain `cloud/videos.json` for historical and manual operations. Free deterministic English captions, relevant hashtags and hash-based duplicate protection. The original HTML test Reel is already recorded and is not reposted.
 
 ## Free hosting and timing
 
@@ -72,7 +72,7 @@ November 9 recovery: the owner explicitly approved publishing missed lessons 006
 
 Scheduled GitHub events were arriving overnight, after the approved 19:00–22:00 IST window. Those runs passed tests but correctly returned `MISSED_PUBLISH_WINDOW`; the late arrival was not an Instagram authorization failure.
 
-The workflow now explicitly uses `Asia/Kolkata` and starts at 13:31, 15:31 and 17:31. A publish invocation starting within 5.5 hours of 19:00 validates the token, source and restored ledger, then holds the cloud runner until private preparation at 18:45. It does not create media in the afternoon. Normal time/day/hash and uncertain-publication guards still control all public writes. The six-hour job timeout covers the longest 5.5-hour wait plus setup and processing. Evening retries remain at :03 and :33 from 19:00 through 21:00.
+The workflow uses `Asia/Kolkata` and starts at 14:31, 16:31 and 18:31, with retries through 22:33. A publish invocation starting within 5.5 hours of 19:00 validates the token, source and restored ledger, then holds the cloud runner until private preparation at 18:45. It does not create media in the afternoon. Normal time/day/hash and uncertain-publication guards still control all public writes. The six-hour job timeout covers the longest 5.5-hour wait plus setup and processing. Evening retries remain at :03 and :33 from 19:00 through 21:00.
 
 The Mac asset-sync backup can dispatch the same guarded cloud worker from 13:30 rather than only 18:45. It remains a GitHub trigger, not a second Meta publisher. Cloud cron does not depend on the Mac. Both routes use the same Actions concurrency group and encrypted ledger.
 

@@ -68,7 +68,7 @@ def authorize_catchup(c,db,missed_date,expected_sha256,candidate):
 def assess_result(c,db,result,has_candidate,event):
  """A scheduler invocation is not a success when its intended daily slot was missed."""
  if result.get('status')=='OUTSIDE_PUBLISH_WINDOW' and event=='schedule' and has_candidate:
-  now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0)
+  now=c.now();target=c.daily_target(now)
   # The only automatic triggers are evening slots. An overnight arrival belongs
   # to yesterday; do not falsify the clock or post a backlog on that basis.
   if now<target-timedelta(minutes=16):target-=timedelta(days=1)
@@ -82,7 +82,7 @@ def main():
  repo=os.environ['GITHUB_REPOSITORY'];token=os.environ['GITHUB_TOKEN'];key=base64.b64decode(os.environ['INSTAGRAM_STATE_KEY'],validate=True)
  if len(key)!=32:raise CloudStateError('Invalid state encryption key.')
  root=Path('.instagram-runtime').resolve();videos=root/'videos';videos.mkdir(parents=True,exist_ok=True)
- os.environ.update(VIDEO_FOLDER=str(videos),TIMEZONE='Asia/Kolkata',PUBLISH_TIME='19:00',CAPTION_MODE='fallback',OPENAI_API_KEY='',PUBLISH_BACKEND='github-actions')
+ os.environ.update(VIDEO_FOLDER=str(videos),TIMEZONE='Asia/Kolkata',PUBLISH_TIME='20:00',CAPTION_MODE='fallback',OPENAI_API_KEY='',PUBLISH_BACKEND='github-actions')
  c=Config.load(root);prepare_storage(c)
  h=logging.StreamHandler();h.addFilter(Redactor([c.token,c.app_secret,token,os.environ['INSTAGRAM_STATE_KEY']]));logging.basicConfig(level=logging.INFO,handlers=[h])
  api=GitHub(repo,token);store=StateStore(api,key);store.load(c.db_path);db=Database(c.db_path)
@@ -91,9 +91,22 @@ def main():
  manifest=json.loads(Path('cloud/videos.json').read_text());entries=manifest['videos']
  if manifest.get('repository')!=repo:raise CloudStateError('Wrong asset repository.')
  if len({v['sha256'] for v in entries})!=len(entries):raise CloudStateError('Duplicate hashes in asset manifest.')
- entries=sorted(entries,key=lambda e:(e['number'],e['filename']));by_hash={v['sha256']:v for v in entries}
+ entries=sorted(entries,key=lambda e:(e['number'],e['filename']))
+ trend_manifest=json.loads(Path('cloud/trending-reels.json').read_text())
+ if trend_manifest.get('repository')!=repo:raise CloudStateError('Wrong trending asset repository.')
+ trending=trend_manifest['videos']
+ if len({v['sha256'] for v in trending})!=len(trending):raise CloudStateError('Duplicate trending videos.')
+ by_hash={v['sha256']:v for v in entries+trending}
  pending=db.pending();needed={j['sha256'] for j in pending}
- candidate=next((v for v in entries if v['sha256'] not in db.published_hashes()),None)
+ if args.mode in ('publish','check'):
+  pool=trending
+ else:
+  pool=entries+trending
+ used=db.published_hashes()
+ candidate=next((v for v in pool if v['sha256'] not in used
+                 and (not args.expected_sha256 or v['sha256']==args.expected_sha256)),None)
+ if pending:
+  candidate=by_hash.get(pending[0]['sha256'])
  if candidate:needed.add(candidate['sha256'])
  for digest in needed:
   if digest not in by_hash:raise CloudStateError('Pending/eligible video is not available in cloud assets.')
@@ -107,19 +120,21 @@ def main():
   secure_json(c.root/'publication-approval.json',{'approved':True,'account_id':c.account_id})
  if args.mode=='check':
   result=check(c,db)
-  result['hosted_video_count']=len(entries);result['durable_state_restored']=True;result['publications']=len(db.history());result['meta_mutations']=0
+  result['hosted_video_count']=len(entries);result['durable_state_restored']=True;result['publications']=len(db.history());result['meta_mutations']=0;result['next_trending_video']=candidate.get('title') if candidate else None;result['publish_time_ist']=c.publish_time
   print(json.dumps(result,indent=2));
   if not result.get('meta',{}).get('valid') or not result.get('meta',{}).get('expiration_verified') or result.get('selection_hold'):return 2
   return 0
  if not enabled:
   print(json.dumps({'status':'CLOUD_PUBLISH_DISABLED','hosted_video_count':len(entries)}));return 0
+ if args.mode=='publish' and not candidate:
+  print(json.dumps({'status':'TRENDING_QUEUE_EMPTY'}));return 2
  # Every critical ledger commit is encrypted and persisted BEFORE control returns to Meta calls.
  db.on_commit=lambda:store.persist(db)
  store.persist(db)
  # Reserve a runner hours before the slot; delayed evening cron is a backup.
  if args.mode=='publish':wait_for_daily_slot(c,db,candidate,lambda:check(c,db))
  # Refresh the clock after waiting; normal publication guards remain intact.
- now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0);wait=(target-now).total_seconds()
+ now=c.now();target=c.daily_target(now);wait=(target-now).total_seconds()
  source_url=None
  # Binary transport returned ProcessingFailedError in a live cloud run. Use the
  # successfully exercised hosted-source route for routine cloud publication.
@@ -132,15 +147,16 @@ def main():
  if args.mode=='schedule':
   target=schedule_target(c,db,args.publish_date,args.expected_sha256,candidate)
   db.set('scheduled_waiter',json.dumps({'status':'WAITING','publishAt':target.isoformat(),'sha256':args.expected_sha256,'run_id':os.environ.get('GITHUB_RUN_ID')}))
-  print(json.dumps({'status':'WAITING_FOR_19_00_IST','publishAt':target.isoformat(),'sha256':args.expected_sha256}),flush=True)
+  print(json.dumps({'status':f'WAITING_FOR_{c.publish_time.replace(chr(58), chr(95))}_IST','publishAt':target.isoformat(),'sha256':args.expected_sha256}),flush=True)
   wait_for_preparation(c,target)
   wait=(target-c.now()).total_seconds()
   db.set('scheduled_waiter',json.dumps({'status':'PREPARING','publishAt':target.isoformat(),'sha256':args.expected_sha256,'run_id':os.environ.get('GITHUB_RUN_ID')}))
- publisher=Publisher(c,db,source_url=source_url)
+ captions=CaptionGenerator(c, curated={v['sha256']:v['caption'] for v in trending})
+ publisher=Publisher(c,db,source_url=source_url,captions=captions)
  if args.mode=='catchup':authorize_catchup(c,db,args.missed_date,args.expected_sha256,candidate)
  if args.mode!='catchup' and 0<wait<=16*60:
   staged=publisher.stage_next()
-  print('Cloud preflight result:',staged.get('status'),'— waiting toward 19:00 IST.',flush=True)
+  print('Cloud preflight result:',staged.get('status'),'— waiting for the daily slot.',flush=True)
   wait=(target-c.now()).total_seconds()
   if wait>0:time.sleep(wait)
  result=publisher.execute();store.persist(db)

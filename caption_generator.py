@@ -1,7 +1,7 @@
 """Economical Responses API captions, plus deterministic topic-aware fallback."""
 import hashlib,re
 class CaptionGenerator:
- def __init__(self,config,client=None):self.c=config;self.client=client
+ def __init__(self,config,client=None,curated=None):self.c=config;self.client=client;self.curated=curated or {}
  @staticmethod
  def footer(video):return f'Lesson {video.number:03d} · TECH AT 60'
  def fallback(self,video):
@@ -54,6 +54,10 @@ class CaptionGenerator:
   if len(text)>2200:raise ValueError('Instagram caption limit exceeded.')
   return text
  def generate(self,video,recent=(),allow_api=True):
+  if video.sha256 in self.curated:
+   caption=self.curated[video.sha256]
+   self.normalize(caption,video)
+   return caption,'curated_short'
   if self.c.caption_mode=='fallback' or not allow_api or not self.c.openai_key:return self.fallback(video),'fallback'
   try:
    if self.client is None:

@@ -11,15 +11,15 @@ def planned_caption(c,db,video,captioner,recent=(),strict=True):
  if plan.get('sha256')!=video.sha256:
   if strict:raise CloudStateError('Selected content differs from the scheduled Reel.')
   return captioner.generate(video,recent)
- at=datetime.fromisoformat(plan['publishAt']);target=c.now().replace(hour=19,minute=0,second=0,microsecond=0)
+ at=datetime.fromisoformat(plan['publishAt']);target=c.daily_target()
  if at!=target:raise CloudStateError('Scheduled Reel time differs from the approved daily slot.')
  return captioner.normalize(plan['caption'],video),'approved_schedule'
 
 def schedule_target(c,db,publish_date,expected_sha256,candidate):
  if os.environ.get('GITHUB_EVENT_NAME')!='workflow_dispatch':raise CloudStateError('Same-day scheduling requires a manual dispatch.')
- now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0)
+ now=c.now();target=c.daily_target(now)
  if publish_date!=now.date().isoformat():raise CloudStateError('The scheduled date must be today in Asia/Kolkata.')
- if not 0<(target-now).total_seconds()<=5.5*3600:raise CloudStateError('Scheduling must start within 5.5 hours before 19:00 IST.')
+ if not 0<(target-now).total_seconds()<=5.5*3600:raise CloudStateError('Scheduling must start within 5.5 hours before the daily slot.')
  if db.used_day(publish_date):raise CloudStateError('Today already has a confirmed Reel.')
  if db.pending():raise CloudStateError('Reconcile pending jobs before starting a scheduled waiter.')
  if not candidate or candidate['sha256']!=expected_sha256:raise CloudStateError('Scheduled video differs from the expected hash.')
@@ -34,14 +34,14 @@ def wait_for_preparation(c,target,sleep=time.sleep):
 
 def wait_for_daily_slot(c,db,candidate,preflight,sleep=time.sleep):
  """Acquire an afternoon runner; do not create media before private preparation."""
- now=c.now();target=now.replace(hour=19,minute=0,second=0,microsecond=0)
+ now=c.now();target=c.daily_target(now)
  wait=(target-now).total_seconds()
  if not candidate or db.used_day(now.date().isoformat()) or not 0<wait<=5.5*3600:return False
  report=preflight()
  if not report.get('meta',{}).get('valid') or not report.get('meta',{}).get('expiration_verified') or report.get('selection_hold'):
   raise CloudStateError('Daily waiter preflight failed; inspect the read-only account/source check.')
  db.set('scheduled_waiter',json.dumps({'status':'WAITING','publishAt':target.isoformat(),'sha256':candidate['sha256'],'run_id':os.environ.get('GITHUB_RUN_ID'),'kind':'daily'}))
- print(json.dumps({'status':'WAITING_FOR_19_00_IST','publishAt':target.isoformat(),'private_preparation_at':(target-timedelta(minutes=15)).isoformat(),'meta_mutations':0}),flush=True)
+ print(json.dumps({'status':f'WAITING_FOR_{c.publish_time.replace(chr(58), chr(95))}_IST','publishAt':target.isoformat(),'private_preparation_at':(target-timedelta(minutes=15)).isoformat(),'meta_mutations':0}),flush=True)
  wait_for_preparation(c,target,sleep=sleep)
  db.set('scheduled_waiter',json.dumps({'status':'PREPARING','publishAt':target.isoformat(),'sha256':candidate['sha256'],'run_id':os.environ.get('GITHUB_RUN_ID'),'kind':'daily'}))
  return True

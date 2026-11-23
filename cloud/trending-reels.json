@@ -1,0 +1,65 @@
+{
+  "repository": "kamalkrgupta/techat60-instagram-publisher",
+  "videos": [
+    {
+      "number": 1,
+      "filename": "001 - webgpu.mp4",
+      "title": "WebGPU Explained: How AI Runs in Your Browser",
+      "youtubeId": "OITndaBo7DA",
+      "caption": "WebGPU Explained: How AI Runs in Your Browser\n\nWebGPU lets supported web apps use your GPU for computation. A compatible AI model can run on your device, with performance depending on the browser and hardware.\n\nFollow @tech_at_60 for more 60-second tech explainers.\n\n#WebGPU #BrowserAI #OnDeviceAI",
+      "sha256": "d2cfc2b2253148d29cb119df28b8f14df4d2babf3728aad815f9a7b5301c32a3",
+      "bytes": 4580991,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/tech-short-OITndaBo7DA-d2cfc2b2253148d29cb119df28b8f14df4d2babf3728aad815f9a7b5301c32a3.mp4"
+    },
+    {
+      "number": 2,
+      "filename": "002 - satellite.mp4",
+      "title": "Satellite Messaging: How Your Phone Connects Without a Cell Tower",
+      "youtubeId": "LaHg-DLtkGk",
+      "caption": "Satellite Messaging: How Your Phone Connects Without a Cell Tower\n\nA compatible phone can send a message through a satellite and ground network. Availability depends on your device, carrier, location and view of the sky.\n\nFollow @tech_at_60 for more 60-second tech explainers.\n\n#SatelliteMessaging #MobileTech #SatelliteConnectivity",
+      "sha256": "8f652cefd2cf514826b779f4edb7ca2ddd036b446eaa06c9f6fb0b847be75af9",
+      "bytes": 4049872,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/tech-short-LaHg-DLtkGk-8f652cefd2cf514826b779f4edb7ca2ddd036b446eaa06c9f6fb0b847be75af9.mp4"
+    },
+    {
+      "number": 3,
+      "filename": "003 - wifi7.mp4",
+      "title": "Wi-Fi 7 Explained: What Is Multi-Link Operation?",
+      "youtubeId": "9_F2twaF3wU",
+      "caption": "Wi-Fi 7 Explained: What Is Multi-Link Operation?\n\nWi-Fi 7 can use multiple wireless links through Multi-Link Operation (MLO). A compatible router and device can use a less congested link when conditions allow.\n\nFollow @tech_at_60 for more 60-second tech explainers.\n\n#WiFi7 #MultiLinkOperation #HomeNetworking",
+      "sha256": "9fd2ed18c9273939c02c9fbf2a2c6193cd5aaad4eaea40587cd2b44daa9a9b86",
+      "bytes": 4008084,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/tech-short-9_F2twaF3wU-9fd2ed18c9273939c02c9fbf2a2c6193cd5aaad4eaea40587cd2b44daa9a9b86.mp4"
+    },
+    {
+      "number": 4,
+      "filename": "004 - auracast.mp4",
+      "title": "Auracast Explained: One Bluetooth Audio Broadcast, Many Listeners",
+      "youtubeId": "33CoAipp1IY",
+      "caption": "Auracast Explained: One Bluetooth Audio Broadcast, Many Listeners\n\nA compatible Auracast source can broadcast audio to multiple nearby receivers. Think of headphones tuning in to the audio from a public TV.\n\nFollow @tech_at_60 for more 60-second tech explainers.\n\n#Auracast #BluetoothLEAudio #WirelessAudio",
+      "sha256": "01ed0de9f13efd090c76ef0a31b1141cd1b0f8ac2209e7dcd89a34fa1054b14d",
+      "bytes": 4012066,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/tech-short-33CoAipp1IY-01ed0de9f13efd090c76ef0a31b1141cd1b0f8ac2209e7dcd89a34fa1054b14d.mp4"
+    },
+    {
+      "number": 5,
+      "filename": "005 - npu.mp4",
+      "title": "CPU vs GPU vs NPU: What Does an AI Chip Do?",
+      "youtubeId": "Tk7OJdGctAw",
+      "caption": "CPU vs GPU vs NPU: What Does an AI Chip Do?\n\nAn NPU is built to accelerate supported neural-network tasks on a device. The CPU, GPU and NPU each handle different types of work depending on the app.\n\nFollow @tech_at_60 for more 60-second tech explainers.\n\n#NPU #OnDeviceAI #AIChips",
+      "sha256": "e864fee076f7684cffee18ae03a75220049dbb687670f4954afe95acb67dc48e",
+      "bytes": 4595865,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/tech-short-Tk7OJdGctAw-e864fee076f7684cffee18ae03a75220049dbb687670f4954afe95acb67dc48e.mp4"
+    },
+    {
+      "number": 6,
+      "filename": "006 - agents.mp4",
+      "title": "AI Agents vs Chatbots: What Changes When AI Uses Tools?",
+      "youtubeId": "xSDwH6K06gs",
+      "caption": "AI Agents vs Chatbots: What Changes When AI Uses Tools?\n\nAn AI agent can work through a plan, use an available tool and check the result before choosing its next step. A tool-using workflow still benefits from clear limits and human review.\n\nFollow @tech_at_60 for more 60-second tech explainers.\n\n#AIAgents #Chatbots #AITools",
+      "sha256": "1c6df67cff5a7c22605dbc9ec4bcf70980dac4d901482ed61ba12827155df24a",
+      "bytes": 3756577,
+      "download_url": "https://github.com/kamalkrgupta/techat60-instagram-publisher/releases/download/reel-inputs/tech-short-xSDwH6K06gs-1c6df67cff5a7c22605dbc9ec4bcf70980dac4d901482ed61ba12827155df24a.mp4"
+    }
+  ]
+}

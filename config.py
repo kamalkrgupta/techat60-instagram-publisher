@@ -52,6 +52,9 @@ class Config:
  @property
  def activation(self):return self.root/'activation.json'
  def now(self):return datetime.now(self.zone)
+ def daily_target(self,now=None):
+  now=(now or self.now()).astimezone(self.zone);hour,minute=map(int,self.publish_time.split(':'))
+  return now.replace(hour=hour,minute=minute,second=0,microsecond=0)
  def due(self,now=None):
   now=(now or self.now()).astimezone(self.zone);h,m=map(int,self.publish_time.split(':'));target=now.replace(hour=h,minute=m,second=0,microsecond=0)
   return target<=now<=target+timedelta(minutes=self.grace_minutes)
@@ -73,7 +76,7 @@ class Config:
   d=json.loads(self.activation.read_text());return d.get('approved') is True and d.get('account_id')==self.account_id
  def validate(self,need_token=False):
   if self.account_id!=EXPECTED_ACCOUNT or self.page_id!=EXPECTED_PAGE or self.app_id!=EXPECTED_APP:raise ConfigError('Configured Meta identity does not match the authorized Techat60 account.')
-  if self.timezone!='Asia/Kolkata' or self.publish_time!='19:00':raise ConfigError('This deployment is configured for 19:00 Asia/Kolkata only.')
+  if self.timezone!='Asia/Kolkata' or self.publish_time not in ('19:00','20:00'):raise ConfigError('This deployment is configured for 19:00 or 20:00 Asia/Kolkata only.')
   if self.graph_version!='v26.0':raise ConfigError('Expected requested Graph API v26.0.')
   if not self.video_folder.is_dir():raise ConfigError('VIDEO_FOLDER is missing or unreadable.')
   if self.root.resolve()==self.video_folder.resolve() or self.root.resolve().is_relative_to(self.video_folder.resolve()):raise ConfigError('Project storage must be separate from source videos.')
